@@ -74,9 +74,7 @@ const App = {
       const result = await DB.loginWithCredentials(username, password);
 
       if (result.ok) {
-        // Si Firebase: onAuthStateChanged llama a startApp.
-        // Si fallback local: llamar directamente.
-        if (!FIREBASE_CONFIGURED) this.startApp();
+        this.startApp();
       } else {
         document.getElementById('login-error').classList.remove('hidden');
         document.getElementById('login-pass').value = '';
