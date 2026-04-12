@@ -118,8 +118,10 @@ const App = {
 
     // Mostrar panel admin si corresponde
     if (session.role === 'admin') {
-      document.getElementById('admin-panel-btn').classList.remove('hidden');
-      document.getElementById('btn-settings').style.display = ''; // mostrar settings
+      const adminBtn = document.getElementById('btn-admin');
+      const settingsBtn = document.getElementById('btn-settings');
+      if (adminBtn) adminBtn.classList.remove('hidden');
+      if (settingsBtn) settingsBtn.style.display = 'flex';
     }
   },
 
@@ -490,6 +492,15 @@ const App = {
       this.showView('admin', 'Panel de Administración');
       this.initAdminPanel();
       InvoiceManager.updateDashboardStats(null);
+    });
+
+    // Dashboard → Configuración (mismo que admin para el jefe)
+    document.getElementById('btn-settings').addEventListener('click', () => {
+      this.showView('admin', 'Configuración');
+      this.initAdminPanel();
+      // Ir directo a la pestaña de empresa
+      const tab = document.querySelector('[data-admintab="company"]');
+      if (tab) tab.click();
     });
 
     // Click en factura del historial reciente
