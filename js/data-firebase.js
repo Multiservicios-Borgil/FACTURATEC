@@ -50,11 +50,14 @@ const DB = {
             const userDoc = await this._db.collection('users').doc(user.uid).get();
             if (userDoc.exists) {
               this._cache.session = { id: user.uid, ...userDoc.data() };
-              await this._setupListeners();
             }
           } catch(e) { console.error('Error cargando sesión:', e); }
+        }
+        
+        // Si hay una sesión activa (ya sea por Firebase o fallback local), activar listeners
+        if (this._cache.session) {
+          await this._setupListeners();
         } else {
-          this._cache.session = null;
           this._removeListeners();
         }
         resolve(user);
