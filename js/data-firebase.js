@@ -124,15 +124,6 @@ const DB = {
       await this._auth.signInWithEmailAndPassword(email, password);
       return { ok: true };
     } catch (err) {
-      // EMERGENCIA: Si es el admin y falla en Firebase, dejarle entrar con local
-      // para que pueda "subir" los datos de empresa y crear técnicos en la nube.
-      if (username.toLowerCase() === 'admin') {
-        const localUser = this._localGetUserByCredentials(username, password);
-        if (localUser) {
-          this._cache.session = localUser;
-          return { ok: true, isLocalFallback: true };
-        }
-      }
       return { ok: false, error: 'Usuario o contraseña incorrectos' };
     }
   },
