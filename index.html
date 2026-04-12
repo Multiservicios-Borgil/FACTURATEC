@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f1117" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Facturación" />
+  <meta name="description" content="Software de facturación para técnicos en campo con impresión Bluetooth." />
+  <title>FacturaTec – Facturación Profesional</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/print.css" media="print" />
+
+  <!-- Firebase SDK (compat v10) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <!-- ========== PANTALLA DE LOGIN ========== -->
+  <div id="screen-login" class="screen active">
+    <div class="login-bg">
+      <div class="login-blob blob-1"></div>
+      <div class="login-blob blob-2"></div>
+    </div>
+    <div class="login-card glass">
+      <div class="login-logo">
+        <div class="logo-icon">⚡</div>
+        <h1 class="logo-title">FacturaTec</h1>
+        <p class="logo-sub">Facturación Profesional</p>
+      </div>
+      <form id="form-login" class="login-form">
+        <div class="field-group">
+          <label for="login-user">Usuario</label>
+          <input type="text" id="login-user" placeholder="Tu nombre de técnico" autocomplete="username" />
+        </div>
+        <div class="field-group">
+          <label for="login-pass">Contraseña</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div id="login-error" class="login-error hidden">Usuario o contraseña incorrectos</div>
+        <button type="submit" class="btn btn-primary btn-block" id="btn-login">Iniciar Sesión</button>
+      </form>
+      <p class="login-hint">Versión 1.0 – Uso restringido a personal autorizado</p>
+    </div>
+  </div>
+
+  <!-- ========== APP PRINCIPAL ========== -->
+  <div id="screen-app" class="screen hidden">
+
+    <!-- TOP BAR -->
+    <header class="topbar" id="topbar">
+      <button class="topbar-back hidden" id="btn-back" aria-label="Volver">
+        <span class="icon">←</span>
+      </button>
+      <div class="topbar-title" id="topbar-title">Inicio</div>
+      <div class="topbar-actions">
+        <span class="topbar-user" id="topbar-user"></span>
+        <button class="topbar-btn" id="btn-logout" title="Cerrar sesión">⎋</button>
+      </div>
+    </header>
+
+    <!-- ========== PANTALLA: DASHBOARD ========== -->
+    <div id="view-dashboard" class="view active">
+      <div class="dashboard-hero">
+        <div class="hero-greeting" id="hero-greeting">Buenos días, Técnico</div>
+        <div class="hero-stats">
+          <div class="stat-card glass">
+            <div class="stat-label">Hoy</div>
+            <div class="stat-value" id="stat-today">0,00 €</div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-label">Este mes</div>
+            <div class="stat-value" id="stat-month">0,00 €</div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-label">Facturas mes</div>
+            <div class="stat-value" id="stat-count">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="action-card primary-action" id="btn-new-invoice">
+          <span class="action-icon">➕</span>
+          <span class="action-label">Nueva Factura</span>
+          <span class="action-desc">Crear factura al cliente</span>
+        </button>
+        <button class="action-card" id="btn-view-invoices">
+          <span class="action-icon">📋</span>
+          <span class="action-label">Mis Facturas</span>
+          <span class="action-desc">Historial y búsqueda</span>
+        </button>
+        <button class="action-card" id="btn-settings" style="display:none">
+          <span class="action-icon">⚙️</span>
+          <span class="action-label">Configuración</span>
+          <span class="action-desc">Datos empresa y técnicos</span>
+        </button>
+      </div>
+
+      <!-- Admin panel button (solo para admin) -->
+      <div id="admin-panel-btn" class="hidden">
+        <button class="action-card admin-card" id="btn-admin">
+          <span class="action-icon">🛡️</span>
+          <span class="action-label">Panel de Administración</span>
+          <span class="action-desc">Gestión global de facturas y técnicos</span>
+        </button>
+      </div>
+
+      <!-- ÚLTIMAS FACTURAS RÁPIDAS -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Últimas facturas</h2>
+        </div>
+        <div id="recent-invoices-list" class="invoice-list-mini">
+          <div class="empty-state-mini">No hay facturas aún. ¡Crea la primera!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PANTALLA: NUEVA FACTURA ========== -->
+    <div id="view-new-invoice" class="view hidden">
+      <div class="form-container">
+
+        <!-- Número de factura -->
+        <div class="form-section">
+          <div class="invoice-number-badge">
+            <span class="inv-num-label">Nº Factura:</span>
+            <span class="inv-num-value" id="invoice-number-display">—</span>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="inv-date">Fecha</label>
+              <input type="date" id="inv-date" />
+            </div>
+            <div class="field-group">
+              <label for="inv-series">Serie</label>
+              <input type="text" id="inv-series" value="A" maxlength="3" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Datos del cliente -->
+        <div class="form-section">
+          <h3 class="form-section-title">👤 Datos del Cliente</h3>
+          <div class="field-group">
+            <label for="cli-nif">DNI / NIF / CIF <span class="required">*</span></label>
+            <input type="text" id="cli-nif" placeholder="12345678A" maxlength="20" />
+          </div>
+          <div class="field-group">
+            <label for="cli-name">Nombre / Razón Social <span class="required">*</span></label>
+            <input type="text" id="cli-name" placeholder="Nombre completo o empresa" />
+          </div>
+          <div class="field-group">
+            <label for="cli-address">Dirección</label>
+            <input type="text" id="cli-address" placeholder="Calle, número, piso..." />
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="cli-cp">C.P.</label>
+              <input type="text" id="cli-cp" placeholder="50300" maxlength="5" />
+            </div>
+            <div class="field-group" style="flex:2">
+              <label for="cli-city">Población</label>
+              <input type="text" id="cli-city" placeholder="Calatayud" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="cli-phone">Teléfono</label>
+            <input type="tel" id="cli-phone" placeholder="666 123 456" />
+          </div>
+        </div>
+
+        <!-- Líneas de factura -->
+        <div class="form-section">
+          <h3 class="form-section-title">🔧 Conceptos</h3>
+          <div id="line-items-container">
+            <!-- Las líneas se generan dinámicamente -->
+          </div>
+          <div class="add-line-buttons">
+            <button class="btn btn-outline btn-sm" id="btn-add-labor">+ Mano de obra</button>
+            <button class="btn btn-outline btn-sm" id="btn-add-part">+ Repuesto / Pieza</button>
+            <button class="btn btn-outline btn-sm" id="btn-add-travel">+ Desplazamiento</button>
+            <button class="btn btn-outline btn-sm" id="btn-add-custom">+ Otro concepto</button>
+          </div>
+        </div>
+
+        <!-- Totales -->
+        <div class="form-section totals-section">
+          <h3 class="form-section-title">💰 Totales</h3>
+          <div class="iva-selector">
+            <label>Tipo de IVA</label>
+            <div class="iva-options">
+              <button class="iva-btn active" data-iva="21">21%</button>
+              <button class="iva-btn" data-iva="10">10%</button>
+              <button class="iva-btn" data-iva="0">Exento</button>
+            </div>
+          </div>
+          <div class="totals-table">
+            <div class="total-row">
+              <span>Base Imponible</span>
+              <span id="total-base">0,00 €</span>
+            </div>
+            <div class="total-row">
+              <span>IVA (<span id="iva-pct-display">21</span>%)</span>
+              <span id="total-iva">0,00 €</span>
+            </div>
+            <div class="total-row total-final">
+              <span>TOTAL</span>
+              <span id="total-final">0,00 €</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Forma de cobro -->
+        <div class="form-section">
+          <h3 class="form-section-title">💳 Forma de Cobro</h3>
+          <div class="payment-methods">
+            <button class="payment-btn active" data-payment="Efectivo">💵 Efectivo</button>
+            <button class="payment-btn" data-payment="Tarjeta">💳 Tarjeta</button>
+            <button class="payment-btn" data-payment="Bizum">📱 Bizum</button>
+            <button class="payment-btn" data-payment="Transferencia">🏦 Transferencia</button>
+            <button class="payment-btn" data-payment="Pendiente">⏳ Pendiente</button>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-section">
+          <h3 class="form-section-title">📝 Observaciones / Garantía</h3>
+          <div class="field-group">
+            <textarea id="inv-notes" rows="3" placeholder="Garantía de 3 meses en piezas. Trabajo realizado en..."></textarea>
+          </div>
+          <div class="field-group">
+            <label for="inv-tech">Técnico responsable</label>
+            <input type="text" id="inv-tech" readonly />
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="form-actions">
+          <button class="btn btn-primary btn-lg btn-block" id="btn-save-invoice">
+            💾 Guardar Factura
+          </button>
+          <button class="btn btn-outline btn-block" id="btn-preview-invoice">
+            👁️ Vista Previa e Imprimir
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========== PANTALLA: LISTADO DE FACTURAS ========== -->
+    <div id="view-invoices" class="view hidden">
+      <div class="list-controls">
+        <input type="search" id="search-invoices" placeholder="🔍 Buscar por cliente, número..." />
+        <select id="filter-month">
+          <option value="">Todos los meses</option>
+        </select>
+      </div>
+      <div id="invoices-list" class="invoice-list">
+        <div class="empty-state">
+          <div class="empty-icon">📄</div>
+          <div class="empty-text">No hay facturas guardadas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PANEL ADMIN ========== -->
+    <div id="view-admin" class="view hidden">
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-admintab="overview">Resumen</button>
+        <button class="admin-tab" data-admintab="all-invoices">Todas las Facturas</button>
+        <button class="admin-tab" data-admintab="technicians">Técnicos</button>
+        <button class="admin-tab" data-admintab="company">Empresa</button>
+      </div>
+
+      <!-- Sub-vista: Resumen -->
+      <div id="admin-overview" class="admin-content active">
+        <div class="admin-stats-grid">
+          <div class="admin-stat glass">
+            <div class="admin-stat-icon">🧾</div>
+            <div class="admin-stat-num" id="admin-total-invoices">0</div>
+            <div class="admin-stat-label">Facturas Totales</div>
+          </div>
+          <div class="admin-stat glass">
+            <div class="admin-stat-icon">💰</div>
+            <div class="admin-stat-num" id="admin-total-amount">0,00 €</div>
+            <div class="admin-stat-label">Total Facturado</div>
+          </div>
+          <div class="admin-stat glass">
+            <div class="admin-stat-icon">👷</div>
+            <div class="admin-stat-num" id="admin-total-techs">0</div>
+            <div class="admin-stat-label">Técnicos Activos</div>
+          </div>
+        </div>
+        <div class="section">
+          <h3 class="section-title">Por Técnico (este mes)</h3>
+          <div id="admin-by-tech"></div>
+        </div>
+      </div>
+
+      <!-- Sub-vista: Todas las facturas -->
+      <div id="admin-all-invoices" class="admin-content hidden">
+        <div class="list-controls">
+          <input type="search" id="admin-search" placeholder="🔍 Buscar..." />
+          <button class="btn btn-outline btn-sm" id="btn-export-csv">⬇️ Exportar CSV</button>
+        </div>
+        <div id="admin-invoices-list" class="invoice-list"></div>
+      </div>
+
+      <!-- Sub-vista: Técnicos -->
+      <div id="admin-technicians" class="admin-content hidden">
+        <div class="section-header">
+          <h3 class="section-title">Técnicos</h3>
+          <button class="btn btn-primary btn-sm" id="btn-add-tech">+ Añadir</button>
+        </div>
+        <div id="techs-list" class="techs-list"></div>
+
+        <div id="tech-form-modal" class="modal hidden">
+          <div class="modal-overlay" id="tech-modal-overlay"></div>
+          <div class="modal-card glass">
+            <h3 class="modal-title" id="tech-modal-title">Nuevo Técnico</h3>
+            <div class="field-group">
+              <label for="tech-name-input">Nombre</label>
+              <input type="text" id="tech-name-input" placeholder="Juan Pérez" />
+            </div>
+            <div class="field-group">
+              <label for="tech-user-input">Usuario</label>
+              <input type="text" id="tech-user-input" placeholder="juanperez" />
+            </div>
+            <div class="field-group">
+              <label for="tech-pass-input">Contraseña</label>
+              <input type="password" id="tech-pass-input" placeholder="••••••••" />
+            </div>
+            <div class="field-group">
+              <label for="tech-role-input">Rol</label>
+              <select id="tech-role-input">
+                <option value="tech">Técnico</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-outline" id="btn-cancel-tech">Cancelar</button>
+              <button class="btn btn-primary" id="btn-save-tech">Guardar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-vista: Empresa -->
+      <div id="admin-company" class="admin-content hidden">
+        <div class="form-section">
+          <h3 class="form-section-title">🏢 Datos de la Empresa</h3>
+          <div class="field-group">
+            <label for="comp-name">Razón Social</label>
+            <input type="text" id="comp-name" placeholder="Multiservicios Borgil S.L." />
+          </div>
+          <div class="field-group">
+            <label for="comp-cif">CIF / NIF</label>
+            <input type="text" id="comp-cif" placeholder="B12345678" />
+          </div>
+          <div class="field-group">
+            <label for="comp-address">Dirección</label>
+            <input type="text" id="comp-address" placeholder="Calle Mayor, 1" />
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="comp-cp">C.P.</label>
+              <input type="text" id="comp-cp" placeholder="50300" maxlength="5" />
+            </div>
+            <div class="field-group" style="flex:2">
+              <label for="comp-city">Población</label>
+              <input type="text" id="comp-city" placeholder="Calatayud" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="comp-phone">Teléfono</label>
+            <input type="tel" id="comp-phone" placeholder="976 000 000" />
+          </div>
+          <div class="field-group">
+            <label for="comp-email">Email</label>
+            <input type="email" id="comp-email" placeholder="info@empresa.com" />
+          </div>
+          <div class="field-group">
+            <label for="comp-web">Web (opcional)</label>
+            <input type="text" id="comp-web" placeholder="www.empresa.com" />
+          </div>
+          <div class="field-group">
+            <label for="comp-invoice-prefix">Prefijo de serie de facturas</label>
+            <input type="text" id="comp-invoice-prefix" placeholder="A" maxlength="5" />
+          </div>
+          <div class="field-group">
+            <label for="comp-footer">Texto al pie de factura</label>
+            <textarea id="comp-footer" rows="2" placeholder="Gracias por confiar en nosotros."></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" id="btn-save-company">💾 Guardar Datos Empresa</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- fin screen-app -->
+
+  <!-- ========== MODAL: VISTA PREVIA FACTURA ========== -->
+  <div id="modal-preview" class="modal hidden">
+    <div class="modal-overlay" id="preview-overlay"></div>
+    <div class="modal-card preview-modal glass">
+      <div class="preview-header">
+        <h3>Vista Previa de Factura</h3>
+        <button class="btn-close" id="btn-close-preview">✕</button>
+      </div>
+      <div id="invoice-preview-content" class="invoice-preview-content">
+        <!-- Generado dinámicamente -->
+      </div>
+      <div class="preview-actions">
+        <button class="btn btn-outline" id="btn-print-invoice">🖨️ Imprimir / Bluetooth</button>
+        <button class="btn btn-primary" id="btn-share-invoice">📤 Compartir (WhatsApp/Email)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ÁREA DE IMPRESIÓN OCULTA ========== -->
+  <div id="print-area" class="print-only"></div>
+
+  <!-- ========== TOAST NOTIFICATIONS ========== -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts (orden importante) -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/data-firebase.js"></script>
+  <script src="js/invoices.js"></script>
+  <script src="js/print.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Registro del Service Worker (PWA offline) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('SW registrado:', reg.scope))
+          .catch(err => console.warn('SW error:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>
