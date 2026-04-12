@@ -1,0 +1,165 @@
+/* ===================================================
+   FacturaTec – Print Stylesheet
+   Optimizado para impresoras térmicas 58mm / 80mm
+   =================================================== */
+
+@media print {
+  /* Ocultar TODO excepto el área de impresión */
+  body > *:not(#print-area) { display: none !important; }
+  #print-area { display: block !important; }
+
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  @page {
+    /* 58mm ancho aproximado en pt. Altura auto. Sin márgenes de página. */
+    size: 58mm auto;
+    margin: 3mm 2mm;
+  }
+
+  .thermal-ticket {
+    width: 100%;
+    max-width: 54mm;
+    margin: 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    color: #000;
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+
+  .ticket-center { text-align: center; }
+  .ticket-right { text-align: right; }
+  .ticket-left { text-align: left; }
+  .ticket-bold { font-weight: bold; }
+
+  .ticket-divider {
+    border: none;
+    border-top: 1px dashed #000;
+    margin: 4pt 0;
+  }
+
+  .ticket-company-name {
+    font-size: 11pt;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 2pt;
+    text-transform: uppercase;
+  }
+
+  .ticket-company-info {
+    font-size: 7.5pt;
+    text-align: center;
+    margin-bottom: 2pt;
+  }
+
+  .ticket-invoice-title {
+    font-size: 10pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 4pt 0 2pt;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .ticket-info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    margin: 1.5pt 0;
+  }
+
+  .ticket-info-row .label { color: #333; }
+  .ticket-info-row .value { font-weight: bold; }
+
+  .ticket-section-header {
+    font-weight: bold;
+    font-size: 7.5pt;
+    margin: 3pt 0 1pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ticket-client-block {
+    font-size: 7.5pt;
+    margin-bottom: 2pt;
+  }
+
+  .ticket-line-item { margin: 2pt 0; }
+  .ticket-line-desc { font-size: 7.5pt; font-weight: bold; }
+  .ticket-line-detail { font-size: 7pt; color: #333; }
+  .ticket-line-subtotal {
+    font-size: 8pt;
+    font-weight: bold;
+    text-align: right;
+  }
+
+  .ticket-totals { margin-top: 3pt; }
+  .ticket-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    margin: 1pt 0;
+  }
+  .ticket-total-final {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+    font-weight: bold;
+    margin: 3pt 0;
+    border-top: 1px solid #000;
+    padding-top: 3pt;
+  }
+
+  .ticket-payment {
+    text-align: center;
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 2pt 0 3pt;
+  }
+
+  .ticket-tech-line { font-size: 7pt; color: #333; }
+
+  .ticket-notes {
+    font-size: 7pt;
+    color: #333;
+    margin: 2pt 0;
+    font-style: italic;
+  }
+
+  .ticket-footer {
+    text-align: center;
+    font-size: 7pt;
+    color: #333;
+    margin-top: 4pt;
+  }
+
+  .ticket-thanks {
+    text-align: center;
+    font-size: 9pt;
+    font-weight: bold;
+    margin-top: 3pt;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+/* Estilos de la vista previa en pantalla (que simula el ticket) */
+.invoice-preview-content {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #1a1a1a;
+  background: #fff;
+  padding: 16px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
