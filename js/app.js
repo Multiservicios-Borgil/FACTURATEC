@@ -532,6 +532,9 @@ const App = {
     document.getElementById('btn-print-invoice').addEventListener('click', () => {
       PrintManager.print();
     });
+    document.getElementById('btn-download-pdf').addEventListener('click', () => {
+      PrintManager.downloadPDF();
+    });
     document.getElementById('btn-share-invoice').addEventListener('click', () => {
       PrintManager.shareInvoice();
     });

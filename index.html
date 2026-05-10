@@ -22,6 +22,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <!-- html2pdf para generación de PDF móvil -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -419,8 +422,11 @@
       <div id="invoice-preview-content" class="invoice-preview-content">
         <!-- Generado dinámicamente -->
       </div>
-      <div class="preview-actions">
-        <button class="btn btn-outline" id="btn-print-invoice">🖨️ Imprimir / Bluetooth</button>
+      <div class="preview-actions" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" id="btn-print-invoice" style="flex: 1;">🖨️ Imprimir</button>
+          <button class="btn btn-outline" id="btn-download-pdf" style="flex: 1;">📄 Descargar PDF</button>
+        </div>
         <button class="btn btn-primary" id="btn-share-invoice">📤 Compartir (WhatsApp/Email)</button>
       </div>
     </div>

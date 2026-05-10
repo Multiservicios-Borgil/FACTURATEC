@@ -2,17 +2,19 @@
    service-worker.js – Caché offline para PWA
    =================================================== */
 
-const CACHE_NAME = 'facturatec-v1';
+const CACHE_NAME = 'facturatec-v2';
 const ASSETS = [
   './index.html',
   './css/main.css',
   './css/print.css',
-  './js/data.js',
+  './js/firebase-config.js',
+  './js/data-firebase.js',
   './js/invoices.js',
   './js/print.js',
   './js/app.js',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
 ];
 
 // Instalación: cachear assets esenciales

@@ -150,6 +150,35 @@ const PrintManager = {
   },
 
   // ============================================================
+  // Descargar como PDF (Usa html2pdf.js)
+  // ============================================================
+  downloadPDF(invoice) {
+    const inv = invoice || this.currentInvoice;
+    if (!inv) return;
+
+    // Crear un contenedor temporal para el PDF
+    const element = document.createElement('div');
+    element.innerHTML = this.generateTicketHTML(inv);
+    
+    // Estilos específicos para el PDF (fondo blanco, letra negra)
+    element.style.padding = '20px';
+    element.style.background = '#fff';
+    element.style.color = '#000';
+    element.style.width = '350px'; // Un poco más ancho que el ticket térmico para PDF
+
+    const opt = {
+      margin:       10,
+      filename:     `Factura_${inv.number}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Ejecutar la conversión
+    html2pdf().set(opt).from(element).save();
+  },
+
+  // ============================================================
   // Compartir por WhatsApp / Email
   // ============================================================
   shareInvoice(invoice) {
