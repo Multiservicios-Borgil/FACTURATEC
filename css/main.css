@@ -816,3 +816,182 @@ input[type="date"] { color-scheme: dark; }
   #view-new-invoice .form-container { padding: 24px; }
   .view { padding-top: calc(var(--topbar-h) + 8px); }
 }
+
+
+/* ============================================================
+   AVISOS / PARTES DE TRABAJO
+   ============================================================ */
+
+/* Tarjeta de aviso en lista */
+.aviso-item {
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.07);
+  transition: transform 0.15s, border-color 0.15s;
+}
+.aviso-item:active { transform: scale(0.98); }
+.aviso-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.aviso-status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.aviso-insurer-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(79,124,255,0.2);
+  color: #4f7cff;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.aviso-client-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 2px;
+}
+.aviso-appliance {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+.aviso-desc {
+  font-size: 0.8rem;
+  color: #888;
+  line-height: 1.4;
+}
+.aviso-item-footer {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: #888;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 8px;
+}
+
+/* Detalle de aviso */
+.detail-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.detail-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #4f7cff;
+  margin-bottom: 10px;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.875rem;
+  gap: 12px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-label {
+  color: #888;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  min-width: 90px;
+}
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding-bottom: 32px;
+}
+
+/* Botones de cambio de estado */
+.status-select-btn {
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.status-select-btn.active,
+.status-select-btn:active { transform: scale(0.96); }
+
+/* Galeria de fotos */
+.photos-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.photo-thumb-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.photo-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: border-color 0.15s;
+}
+.photo-thumb:active { border-color: #4f7cff; }
+.photo-delete-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* Chips de estadisticas de avisos */
+.aviso-stat-chip {
+  flex: 1;
+  min-width: 120px;
+}
+.aviso-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Header del detalle */
+.aviso-detail-header {
+  display: flex;
+  flex-direction: column;
+}

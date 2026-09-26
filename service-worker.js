@@ -1,8 +1,8 @@
-/* ===================================================
-   service-worker.js – Caché offline para PWA
+﻿/* ===================================================
+   service-worker.js â€“ CachÃ© offline para PWA
    =================================================== */
 
-const CACHE_NAME = 'facturatec-v2';
+const CACHE_NAME = 'facturatec-v3';
 const ASSETS = [
   './index.html',
   './css/main.css',
@@ -11,13 +11,14 @@ const ASSETS = [
   './js/data-firebase.js',
   './js/invoices.js',
   './js/print.js',
+  './js/avisos.js',
   './js/app.js',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
 ];
 
-// Instalación: cachear assets esenciales
+// InstalaciÃ³n: cachear assets esenciales
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
@@ -25,7 +26,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Activación: limpiar cachés antiguas
+// ActivaciÃ³n: limpiar cachÃ©s antiguas
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -35,7 +36,7 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: servir desde caché, fallback a red
+// Fetch: servir desde cachÃ©, fallback a red
 self.addEventListener('fetch', event => {
   // Solo interceptar peticiones de la misma origen o assets conocidos
   if (event.request.method !== 'GET') return;
@@ -43,14 +44,14 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Cachear recursos nuevos dinámicamente
+        // Cachear recursos nuevos dinÃ¡micamente
         if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       }).catch(() => {
-        // Si falla la red y no hay caché, devolver página offline si existe
+        // Si falla la red y no hay cachÃ©, devolver pÃ¡gina offline si existe
         if (event.request.destination === 'document') {
           return caches.match('./index.html');
         }
@@ -58,3 +59,4 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+
