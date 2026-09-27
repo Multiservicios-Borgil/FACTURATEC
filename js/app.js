@@ -191,7 +191,6 @@ const App = {
       updateInvoiceNumberPreview(e.target.value);
     });
 
-        btn.textContent = '💾 Guardar Factura';
     document.getElementById('btn-save-invoice').addEventListener('click', async () => {
       if (!InvoiceManager.validate()) return;
       const btn        = document.getElementById('btn-save-invoice');
