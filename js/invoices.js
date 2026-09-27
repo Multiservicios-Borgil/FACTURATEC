@@ -1,6 +1,6 @@
 /* ===================================================
-   invoices.js – Lógica de facturas
-   Gestión de líneas, cálculos y operaciones CRUD
+   invoices.js - L�gica de facturas
+   Gesti�n de l�neas, c�lculos y operaciones CRUD
    =================================================== */
 
 const InvoiceManager = {
@@ -24,11 +24,11 @@ const InvoiceManager = {
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById('inv-date').value = today;
 
-    // Técnico logueado
+    // T�cnico logueado
     const session = DB.getSession();
     document.getElementById('inv-tech').value = session ? session.name : '';
 
-    // Número de factura (preview)
+    // N�mero de factura (preview)
     const series = document.getElementById('inv-series').value || 'A';
     Promise.resolve(DB.peekNextInvoiceNumber(series)).then(num => {
       document.getElementById('invoice-number-display').textContent =
@@ -51,7 +51,7 @@ const InvoiceManager = {
     });
   },
 
-  // ---------- AÑADIR LÍNEA ----------
+  // ---------- A�ADIR L�NEA ----------
   addLine(type) {
     const line = {
       id: Date.now().toString(),
@@ -63,7 +63,7 @@ const InvoiceManager = {
     };
     this.currentLines.push(line);
     this.renderLines();
-    // Enfocar el primer input de la nueva línea
+    // Enfocar el primer input de la nueva l�nea
     setTimeout(() => {
       const lastLine = document.querySelector(`.line-item:last-child input[data-field="description"]`);
       if (lastLine) lastLine.focus();
@@ -87,7 +87,7 @@ const InvoiceManager = {
     this.updateTotals();
   },
 
-  // ---------- RENDERIZAR LÍNEAS ----------
+  // ---------- RENDERIZAR L�NEAS ----------
   renderLines() {
     const container = document.getElementById('line-items-container');
     if (!container) return;
@@ -96,7 +96,7 @@ const InvoiceManager = {
 
     if (this.currentLines.length === 0) {
       container.innerHTML = `<div class="empty-state-mini" style="margin-bottom:8px">
-        Añade conceptos usando los botones de abajo</div>`;
+        A�ade conceptos usando los botones de abajo</div>`;
       return;
     }
 
@@ -116,11 +116,11 @@ const InvoiceManager = {
       el.innerHTML = `
         <div class="line-item-header">
           <span class="line-item-type ${typeClasses[line.type]}">${typeLabels[line.type]}</span>
-          <button class="btn-remove-line" data-remove="${line.id}" aria-label="Eliminar línea">✕</button>
+          <button class="btn-remove-line" data-remove="${line.id}" aria-label="Eliminar l�nea">?</button>
         </div>
         <div class="line-fields">
           <div class="field-group">
-            <label>Descripción</label>
+            <label>Descripci�n</label>
             <input type="text" data-field="description" data-line="${line.id}"
               placeholder="${defaultDescs[line.type]}"
               value="${this.escapeHtml(line.description)}" />
@@ -132,7 +132,7 @@ const InvoiceManager = {
                 min="0.5" step="0.5" value="${line.quantity}" />
             </div>
             <div class="field-group">
-              <label>${line.type === 'labor' ? 'Precio/hora (€)' : 'Precio unitario (€)'}</label>
+              <label>${line.type === 'labor' ? 'Precio/hora (?)' : 'Precio unitario (?)'}</label>
               <input type="number" data-field="unitPrice" data-line="${line.id}"
                 min="0" step="0.01" value="${line.unitPrice || ''}" placeholder="0,00" />
             </div>
@@ -176,7 +176,7 @@ const InvoiceManager = {
       date,
       createdAt: new Date().toISOString(),
       techId: session?.id,
-      techName: session?.name || 'Técnico',
+      techName: session?.name || 'T�cnico',
       company: { ...company },
       client: {
         nif: document.getElementById('cli-nif').value.trim(),
@@ -203,7 +203,7 @@ const InvoiceManager = {
     const name = document.getElementById('cli-name').value.trim();
     if (!nif) { showToast('El NIF/CIF del cliente es obligatorio', 'error'); return false; }
     if (!name) { showToast('El nombre del cliente es obligatorio', 'error'); return false; }
-    if (this.currentLines.length === 0) { showToast('Añade al menos un concepto', 'error'); return false; }
+    if (this.currentLines.length === 0) { showToast('A�ade al menos un concepto', 'error'); return false; }
     const hasPrice = this.currentLines.some(l => l.unitPrice > 0);
     if (!hasPrice) { showToast('Al menos un concepto debe tener precio', 'error'); return false; }
     return true;
@@ -216,7 +216,7 @@ const InvoiceManager = {
 
     if (invoices.length === 0) {
       container.innerHTML = `<div class="empty-state">
-        <div class="empty-icon">📄</div>
+        <div class="empty-icon">??</div>
         <div class="empty-text">No hay facturas que mostrar</div>
       </div>`;
       return;
@@ -227,24 +227,24 @@ const InvoiceManager = {
       const el = document.createElement('div');
       el.className = 'invoice-item';
       el.dataset.invoiceId = inv.id;
-      const dateFormatted = inv.date ? new Date(inv.date + 'T12:00:00').toLocaleDateString('es-ES') : '—';
+      const dateFormatted = inv.date ? new Date(inv.date + 'T12:00:00').toLocaleDateString('es-ES') : '-';
       const session = DB.getSession();
       const canDelete = session?.role === 'admin';
       el.innerHTML = `
         <div class="invoice-item-left">
-          <div class="inv-number">Nº ${inv.number}</div>
+          <div class="inv-number">N� ${inv.number}</div>
           <div class="inv-client">${this.escapeHtml(inv.client?.name || 'Sin nombre')}</div>
           <div class="inv-meta">
             <span title="Fecha">${dateFormatted}</span>
-            ${showTech ? `<span title="Técnico">👷 ${this.escapeHtml(inv.techName || '')}</span>` : ''}
-            <span class="inv-payment-badge">${inv.paymentMethod || '—'}</span>
+            ${showTech ? `<span title="T�cnico">?? ${this.escapeHtml(inv.techName || '')}</span>` : ''}
+            <span class="inv-payment-badge">${inv.paymentMethod || '-'}</span>
           </div>
         </div>
         <div class="invoice-item-right">
           <div class="inv-total">${this.formatCurrency(inv.totals?.total || 0)}</div>
           <div class="inv-actions">
-            <button class="inv-action-btn" data-action="view" data-id="${inv.id}" title="Ver/Imprimir">🖨️</button>
-            ${canDelete ? `<button class="inv-action-btn delete" data-action="delete" data-id="${inv.id}" title="Eliminar">🗑️</button>` : ''}
+            <button class="inv-action-btn" data-action="view" data-id="${inv.id}" title="Ver/Imprimir">???</button>
+            ${canDelete ? `<button class="inv-action-btn delete" data-action="delete" data-id="${inv.id}" title="Eliminar">???</button>` : ''}
           </div>
         </div>`;
 
@@ -261,18 +261,18 @@ const InvoiceManager = {
     if (!container) return;
 
     if (recent.length === 0) {
-      container.innerHTML = `<div class="empty-state-mini">No hay facturas aún. ¡Crea la primera!</div>`;
+      container.innerHTML = `<div class="empty-state-mini">No hay facturas a�n. �Crea la primera!</div>`;
       return;
     }
     container.innerHTML = '';
     recent.forEach(inv => {
-      const dateFormatted = inv.date ? new Date(inv.date + 'T12:00:00').toLocaleDateString('es-ES') : '—';
+      const dateFormatted = inv.date ? new Date(inv.date + 'T12:00:00').toLocaleDateString('es-ES') : '-';
       const el = document.createElement('div');
       el.className = 'mini-invoice-item';
       el.dataset.invoiceId = inv.id;
       el.innerHTML = `
         <div class="mini-inv-info">
-          <div class="mini-inv-num">Nº ${inv.number}</div>
+          <div class="mini-inv-num">N� ${inv.number}</div>
           <div class="mini-inv-client">${this.escapeHtml(inv.client?.name || 'Sin nombre')}</div>
           <div class="mini-inv-date">${dateFormatted}</div>
         </div>
@@ -281,7 +281,7 @@ const InvoiceManager = {
     });
   },
 
-  // ---------- ESTADÍSTICAS ----------
+  // ---------- ESTAD�STICAS ----------
   updateDashboardStats(techId) {
     const all = DB.getInvoices();
     const session = DB.getSession();
@@ -321,7 +321,7 @@ const InvoiceManager = {
     const thisMonth = new Date().toISOString().slice(0, 7);
     const allThisMonth = DB.getInvoices().filter(inv => inv.date?.startsWith(thisMonth));
 
-    // Agrupar por Técnico
+    // Agrupar por T�cnico
     const byTech = {};
     allThisMonth.forEach(inv => {
       if (!byTech[inv.techName]) byTech[inv.techName] = { count: 0, total: 0 };
@@ -337,7 +337,7 @@ const InvoiceManager = {
     container.innerHTML = entries.map(([name, data]) => `
       <div class="tech-item" style="margin-bottom:8px">
         <div class="tech-info-main">
-          <div class="tech-name">👷 ${this.escapeHtml(name)}</div>
+          <div class="tech-name">?? ${this.escapeHtml(name)}</div>
           <div class="tech-user">${data.count} facturas</div>
         </div>
         <div style="font-weight:700;color:var(--accent2)">${this.formatCurrency(data.total)}</div>

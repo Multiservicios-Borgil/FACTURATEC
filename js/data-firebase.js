@@ -1,13 +1,13 @@
 /* ===================================================
-   data-firebase.js â€” Capa de datos con Firebase
-   Reemplaza data.js cuando Firebase estÃ¡ configurado.
-   Usa cachÃ© en memoria para operaciones sÃ­ncronas,
+   data-firebase.js �?" Capa de datos con Firebase
+   Reemplaza data.js cuando Firebase está configurado.
+   Usa caché en memoria para operaciones síncronas,
    sincronizada en tiempo real con Firestore.
    =================================================== */
 
 const DB = {
 
-  // ---------- CACHÃ‰ EN MEMORIA ----------
+  // ---------- CACH�? EN MEMORIA ----------
   _cache: {
     users:    [],
     invoices: [],
@@ -25,7 +25,7 @@ const DB = {
   _listeners: [],
 
   // ============================================================
-  // INICIALIZACIÃ“N
+  // INICIALIZACI�"N
   // ============================================================
   async init() {
     if (!FIREBASE_CONFIGURED) {
@@ -55,10 +55,10 @@ const DB = {
             if (userDoc.exists) {
               this._cache.session = { id: user.uid, ...userDoc.data() };
             }
-          } catch(e) { console.error('Error cargando sesiÃ³n:', e); }
+          } catch(e) { console.error('Error cargando sesión:', e); }
         }
         
-        // Si hay una sesiÃ³n activa (ya sea por Firebase o fallback local), activar listeners
+        // Si hay una sesión activa (ya sea por Firebase o fallback local), activar listeners
         if (this._cache.session) {
           await this._setupListeners();
         } else {
@@ -74,7 +74,7 @@ const DB = {
     this._removeListeners();
     const session = this._cache.session;
 
-    // Facturas: admin ve todas, tÃ©cnico solo las suyas
+    // Facturas: admin ve todas, técnico solo las suyas
     let invoiceQuery = this._db.collection('invoices').orderBy('createdAt', 'desc');
     if (session?.role !== 'admin') {
       invoiceQuery = invoiceQuery.where('techId', '==', session.id);
@@ -99,7 +99,7 @@ const DB = {
 
     const unsubInvoices = invoiceQuery.onSnapshot(snap => {
       this._cache.invoices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Refrescar UI si estÃ¡ visible
+      // Refrescar UI si está visible
       if (typeof App !== 'undefined') {
         if (App.currentView === 'dashboard') App.refreshDashboard();
         if (App.currentView === 'invoices')  App.filterInvoices();
@@ -129,7 +129,7 @@ const DB = {
   },
 
   // ============================================================
-  // SESIÃ“N / AUTENTICACIÃ“N
+  // SESI�"N / AUTENTICACI�"N
   // ============================================================
   getSession() { return this._cache.session; },
 
@@ -138,14 +138,14 @@ const DB = {
       // Fallback local
       const user = this._localGetUserByCredentials(username, password);
       if (user) { this._cache.session = user; return { ok: true, user }; }
-      return { ok: false, error: 'Usuario o contraseÃ±a incorrectos' };
+      return { ok: false, error: 'Usuario o contraseña incorrectos' };
     }
     const email = `${username.trim().toLowerCase()}@facturatec.app`;
     try {
       await this._auth.signInWithEmailAndPassword(email, password);
       return { ok: true };
     } catch (err) {
-      return { ok: false, error: 'Usuario o contraseÃ±a incorrectos' };
+      return { ok: false, error: 'Usuario o contraseña incorrectos' };
     }
   },
 
@@ -157,12 +157,12 @@ const DB = {
     this._cache.session = null;
   },
 
-  // Compatibilidad con cÃ³digo antiguo
+  // Compatibilidad con código antiguo
   setSession(user) { this._cache.session = user; },
   clearSession() { this._cache.session = null; },
 
   // ============================================================
-  // USUARIOS / TÃ‰CNICOS
+  // USUARIOS / T�?CNICOS
   // ============================================================
   getUsers() { return this._cache.users; },
 
@@ -171,7 +171,7 @@ const DB = {
 
     const email = `${userData.username.trim().toLowerCase()}@facturatec.app`;
 
-    // Crear en Firebase Auth usando app secundaria (sin cerrar sesiÃ³n del admin)
+    // Crear en Firebase Auth usando app secundaria (sin cerrar sesión del admin)
     let secondaryApp;
     try {
       secondaryApp = firebase.initializeApp(firebase.app().options, `sec-${Date.now()}`);
@@ -206,7 +206,7 @@ const DB = {
     if (!this._initialized) return this._localUpdateUser(id, fields);
     try {
       const updateData = { ...fields };
-      // Si cambiÃ³ contraseÃ±a, actualizar en Firebase Auth requerirÃ­a Admin SDK
+      // Si cambió contraseña, actualizar en Firebase Auth requeriría Admin SDK
       // Por ahora guardamos solo los metadatos en Firestore
       delete updateData.password;
       await this._db.collection('users').doc(id).update(updateData);
@@ -240,7 +240,7 @@ const DB = {
     try {
       const ref  = await this._db.collection('invoices').add(invoice);
       invoice.id = ref.id;
-      // El listener real-time actualizarÃ¡ la cachÃ© automÃ¡ticamente
+      // El listener real-time actualizará la caché automáticamente
       return invoice;
     } catch(err) {
       console.error('addInvoice error:', err);
@@ -258,7 +258,7 @@ const DB = {
     await this._db.collection('invoices').doc(id).delete();
   },
 
-  // NÃºmero de factura â€” TransacciÃ³n atÃ³mica en Firestore
+  // Número de factura �?" Transacción atómica en Firestore
   async getNextInvoiceNumber(series) {
     if (!this._initialized) return this._localGetNextNumber(series);
     const year    = new Date().getFullYear();
@@ -275,7 +275,7 @@ const DB = {
       this._cache.counter[key] = next;
       return next;
     } catch(e) {
-      // Fallback local si falla la transacciÃ³n
+      // Fallback local si falla la transacción
       return this._localGetNextNumber(series);
     }
   },
@@ -372,9 +372,9 @@ const DB = {
     const invoices = this.getInvoices();
     const company  = this.getCompany();
     const headers  = [
-      'NÃºmero','Fecha','Cliente','NIF Cliente','DirecciÃ³n',
+      'Número','Fecha','Cliente','NIF Cliente','Dirección',
       'Conceptos','Base','IVA%','Cuota IVA','Total',
-      'Forma de Cobro','TÃ©cnico','Notas'
+      'Forma de Cobro','Técnico','Notas'
     ];
     const rows = invoices.map(inv => [
       inv.number, inv.date,

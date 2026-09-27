@@ -1,7 +1,7 @@
 /* ===================================================
    firebase-config.js
-   INSTRUCCIONES: Pega aquí tu configuración de Firebase.
-   Obtenerla en: Firebase Console → Tu proyecto → ⚙️ → Tus apps → Web
+   INSTRUCCIONES: Pega aqu� tu configuraci�n de Firebase.
+   Obtenerla en: Firebase Console ? Tu proyecto ? ?? ? Tus apps ? Web
    =================================================== */
 
 const firebaseConfig = {
@@ -13,5 +13,5 @@ const firebaseConfig = {
   appId: "1:379196559567:web:1060cbccc71393e9e6e7ba"
 };
 
-// NO TOCAR — Detecta si la config es la de plantilla
+// NO TOCAR - Detecta si la config es la de plantilla
 const FIREBASE_CONFIGURED = !firebaseConfig.apiKey.startsWith('PEGA_');

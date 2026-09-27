@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#0f1117" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="FacturaciÃ³n" />
-  <meta name="description" content="Software de facturaciÃ³n para tÃ©cnicos en campo con impresiÃ³n Bluetooth." />
-  <title>FacturaTec â€“ FacturaciÃ³n Profesional</title>
+  <meta name="apple-mobile-web-app-title" content="Facturación" />
+  <meta name="description" content="Software de facturación para técnicos en campo con impresión Bluetooth." />
+  <title>FacturaTec �?" Facturación Profesional</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
   <link rel="apple-touch-icon" href="icons/icon.svg" />
@@ -24,7 +24,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
-  <!-- html2pdf para generaciÃ³n de PDF mÃ³vil -->
+  <!-- html2pdf para generación de PDF móvil -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -37,23 +37,23 @@
     </div>
     <div class="login-card glass">
       <div class="login-logo">
-        <div class="logo-icon">âš¡</div>
+        <div class="logo-icon">�s�</div>
         <h1 class="logo-title">FacturaTec</h1>
-        <p class="logo-sub">FacturaciÃ³n Profesional</p>
+        <p class="logo-sub">Facturación Profesional</p>
       </div>
       <form id="form-login" class="login-form">
         <div class="field-group">
           <label for="login-user">Usuario</label>
-          <input type="text" id="login-user" placeholder="Tu nombre de tÃ©cnico" autocomplete="username" />
+          <input type="text" id="login-user" placeholder="Tu nombre de técnico" autocomplete="username" />
         </div>
         <div class="field-group">
-          <label for="login-pass">ContraseÃ±a</label>
-          <input type="password" id="login-pass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="current-password" />
+          <label for="login-pass">Contraseña</label>
+          <input type="password" id="login-pass" placeholder="�?��?��?��?��?��?��?��?�" autocomplete="current-password" />
         </div>
-        <div id="login-error" class="login-error hidden">Usuario o contraseÃ±a incorrectos</div>
-        <button type="submit" class="btn btn-primary btn-block" id="btn-login">Iniciar SesiÃ³n</button>
+        <div id="login-error" class="login-error hidden">Usuario o contraseña incorrectos</div>
+        <button type="submit" class="btn btn-primary btn-block" id="btn-login">Iniciar Sesión</button>
       </form>
-      <p class="login-hint">VersiÃ³n 1.0 â€“ Uso restringido a personal autorizado</p>
+      <p class="login-hint">Versión 1.0 �?" Uso restringido a personal autorizado</p>
     </div>
   </div>
 
@@ -63,27 +63,27 @@
     <!-- TOP BAR -->
     <header class="topbar" id="topbar">
       <button class="topbar-back hidden" id="btn-back" aria-label="Volver">
-        <span class="icon">â†</span>
+        <span class="icon">�?�</span>
       </button>
       <div class="topbar-title" id="topbar-title">Inicio</div>
       <div class="topbar-actions">
         <span class="topbar-user" id="topbar-user"></span>
-        <button class="topbar-btn" id="btn-logout" title="Cerrar sesiÃ³n">âŽ‹</button>
+        <button class="topbar-btn" id="btn-logout" title="Cerrar sesión">�Z<</button>
       </div>
     </header>
 
     <!-- ========== PANTALLA: DASHBOARD ========== -->
     <div id="view-dashboard" class="view active">
       <div class="dashboard-hero">
-        <div class="hero-greeting" id="hero-greeting">Buenos dÃ­as, TÃ©cnico</div>
+        <div class="hero-greeting" id="hero-greeting">Buenos días, Técnico</div>
         <div class="hero-stats">
           <div class="stat-card glass">
             <div class="stat-label">Hoy</div>
-            <div class="stat-value" id="stat-today">0,00 â‚¬</div>
+            <div class="stat-value" id="stat-today">0,00 �,�</div>
           </div>
           <div class="stat-card glass">
             <div class="stat-label">Este mes</div>
-            <div class="stat-value" id="stat-month">0,00 â‚¬</div>
+            <div class="stat-value" id="stat-month">0,00 �,�</div>
           </div>
           <div class="stat-card glass">
             <div class="stat-label">Facturas mes</div>
@@ -94,43 +94,43 @@
 
       <div class="action-buttons">
         <button class="action-card primary-action" id="btn-new-invoice">
-          <span class="action-icon">âž•</span>
+          <span class="action-icon">�z.</span>
           <span class="action-label">Nueva Factura</span>
           <span class="action-desc">Crear factura al cliente</span>
         </button>
         <button class="action-card" id="btn-view-invoices">
-          <span class="action-icon">ðŸ“‹</span>
+          <span class="action-icon">�Y"<</span>
           <span class="action-label">Mis Facturas</span>
-          <span class="action-desc">Historial y bÃºsqueda</span>
+          <span class="action-desc">Historial y búsqueda</span>
         </button>
         <button class="action-card" id="btn-avisos">
-          <span class="action-icon">📋</span>
+          <span class="action-icon">??</span>
           <span class="action-label">Avisos</span>
           <span class="action-desc">Partes de trabajo y reparaciones</span>
         </button>
         <button class="action-card" id="btn-settings" style="display:none">
-          <span class="action-icon">âš™ï¸</span>
-          <span class="action-label">ConfiguraciÃ³n</span>
-          <span class="action-desc">Datos empresa y tÃ©cnicos</span>
+          <span class="action-icon">�sT️</span>
+          <span class="action-label">Configuración</span>
+          <span class="action-desc">Datos empresa y técnicos</span>
         </button>
       </div>
 
       <!-- Admin panel button (solo para admin) -->
       <div id="admin-panel-btn" class="hidden">
         <button class="action-card admin-card" id="btn-admin">
-          <span class="action-icon">ðŸ›¡ï¸</span>
-          <span class="action-label">Panel de AdministraciÃ³n</span>
-          <span class="action-desc">GestiÃ³n global de facturas y tÃ©cnicos</span>
+          <span class="action-icon">�Y>�️</span>
+          <span class="action-label">Panel de Administración</span>
+          <span class="action-desc">Gestión global de facturas y técnicos</span>
         </button>
       </div>
 
-      <!-- ÃšLTIMAS FACTURAS RÃPIDAS -->
+      <!-- �sLTIMAS FACTURAS RÁPIDAS -->
       <div class="section">
         <div class="section-header">
-          <h2 class="section-title">Ãšltimas facturas</h2>
+          <h2 class="section-title">�sltimas facturas</h2>
         </div>
         <div id="recent-invoices-list" class="invoice-list-mini">
-          <div class="empty-state-mini">No hay facturas aÃºn. Â¡Crea la primera!</div>
+          <div class="empty-state-mini">No hay facturas aún. ¡Crea la primera!</div>
         </div>
       </div>
     </div>
@@ -139,11 +139,11 @@
     <div id="view-new-invoice" class="view hidden">
       <div class="form-container">
 
-        <!-- NÃºmero de factura -->
+        <!-- Número de factura -->
         <div class="form-section">
           <div class="invoice-number-badge">
-            <span class="inv-num-label">NÂº Factura:</span>
-            <span class="inv-num-value" id="invoice-number-display">â€”</span>
+            <span class="inv-num-label">Nº Factura:</span>
+            <span class="inv-num-value" id="invoice-number-display">�?"</span>
           </div>
           <div class="field-row">
             <div class="field-group">
@@ -159,18 +159,18 @@
 
         <!-- Datos del cliente -->
         <div class="form-section">
-          <h3 class="form-section-title">ðŸ‘¤ Datos del Cliente</h3>
+          <h3 class="form-section-title">�Y'� Datos del Cliente</h3>
           <div class="field-group">
             <label for="cli-nif">DNI / NIF / CIF <span class="required">*</span></label>
             <input type="text" id="cli-nif" placeholder="12345678A" maxlength="20" />
           </div>
           <div class="field-group">
-            <label for="cli-name">Nombre / RazÃ³n Social <span class="required">*</span></label>
+            <label for="cli-name">Nombre / Razón Social <span class="required">*</span></label>
             <input type="text" id="cli-name" placeholder="Nombre completo o empresa" />
           </div>
           <div class="field-group">
-            <label for="cli-address">DirecciÃ³n</label>
-            <input type="text" id="cli-address" placeholder="Calle, nÃºmero, piso..." />
+            <label for="cli-address">Dirección</label>
+            <input type="text" id="cli-address" placeholder="Calle, número, piso..." />
           </div>
           <div class="field-row">
             <div class="field-group">
@@ -178,21 +178,21 @@
               <input type="text" id="cli-cp" placeholder="50300" maxlength="5" />
             </div>
             <div class="field-group" style="flex:2">
-              <label for="cli-city">PoblaciÃ³n</label>
+              <label for="cli-city">Población</label>
               <input type="text" id="cli-city" placeholder="Calatayud" />
             </div>
           </div>
           <div class="field-group">
-            <label for="cli-phone">TelÃ©fono</label>
+            <label for="cli-phone">Teléfono</label>
             <input type="tel" id="cli-phone" placeholder="666 123 456" />
           </div>
         </div>
 
-        <!-- LÃ­neas de factura -->
+        <!-- Líneas de factura -->
         <div class="form-section">
-          <h3 class="form-section-title">ðŸ”§ Conceptos</h3>
+          <h3 class="form-section-title">�Y"� Conceptos</h3>
           <div id="line-items-container">
-            <!-- Las lÃ­neas se generan dinÃ¡micamente -->
+            <!-- Las líneas se generan dinámicamente -->
           </div>
           <div class="add-line-buttons">
             <button class="btn btn-outline btn-sm" id="btn-add-labor">+ Mano de obra</button>
@@ -204,7 +204,7 @@
 
         <!-- Totales -->
         <div class="form-section totals-section">
-          <h3 class="form-section-title">ðŸ’° Totales</h3>
+          <h3 class="form-section-title">�Y'� Totales</h3>
           <div class="iva-selector">
             <label>Tipo de IVA</label>
             <div class="iva-options">
@@ -216,50 +216,50 @@
           <div class="totals-table">
             <div class="total-row">
               <span>Base Imponible</span>
-              <span id="total-base">0,00 â‚¬</span>
+              <span id="total-base">0,00 �,�</span>
             </div>
             <div class="total-row">
               <span>IVA (<span id="iva-pct-display">21</span>%)</span>
-              <span id="total-iva">0,00 â‚¬</span>
+              <span id="total-iva">0,00 �,�</span>
             </div>
             <div class="total-row total-final">
               <span>TOTAL</span>
-              <span id="total-final">0,00 â‚¬</span>
+              <span id="total-final">0,00 �,�</span>
             </div>
           </div>
         </div>
 
         <!-- Forma de cobro -->
         <div class="form-section">
-          <h3 class="form-section-title">ðŸ’³ Forma de Cobro</h3>
+          <h3 class="form-section-title">�Y'� Forma de Cobro</h3>
           <div class="payment-methods">
-            <button class="payment-btn active" data-payment="Efectivo">ðŸ’µ Efectivo</button>
-            <button class="payment-btn" data-payment="Tarjeta">ðŸ’³ Tarjeta</button>
-            <button class="payment-btn" data-payment="Bizum">ðŸ“± Bizum</button>
-            <button class="payment-btn" data-payment="Transferencia">ðŸ¦ Transferencia</button>
-            <button class="payment-btn" data-payment="Pendiente">â³ Pendiente</button>
+            <button class="payment-btn active" data-payment="Efectivo">�Y'� Efectivo</button>
+            <button class="payment-btn" data-payment="Tarjeta">�Y'� Tarjeta</button>
+            <button class="payment-btn" data-payment="Bizum">�Y"� Bizum</button>
+            <button class="payment-btn" data-payment="Transferencia">�Y�� Transferencia</button>
+            <button class="payment-btn" data-payment="Pendiente">⏳ Pendiente</button>
           </div>
         </div>
 
         <!-- Observaciones -->
         <div class="form-section">
-          <h3 class="form-section-title">ðŸ“ Observaciones / GarantÃ­a</h3>
+          <h3 class="form-section-title">�Y"� Observaciones / Garantía</h3>
           <div class="field-group">
-            <textarea id="inv-notes" rows="3" placeholder="GarantÃ­a de 3 meses en piezas. Trabajo realizado en..."></textarea>
+            <textarea id="inv-notes" rows="3" placeholder="Garantía de 3 meses en piezas. Trabajo realizado en..."></textarea>
           </div>
           <div class="field-group">
-            <label for="inv-tech">TÃ©cnico responsable</label>
+            <label for="inv-tech">Técnico responsable</label>
             <input type="text" id="inv-tech" readonly />
           </div>
         </div>
 
-        <!-- Botones de acciÃ³n -->
+        <!-- Botones de acción -->
         <div class="form-actions">
           <button class="btn btn-primary btn-lg btn-block" id="btn-save-invoice">
-            ðŸ’¾ Guardar Factura
+            �Y'� Guardar Factura
           </button>
           <button class="btn btn-outline btn-block" id="btn-preview-invoice">
-            ðŸ‘ï¸ Vista Previa e Imprimir
+            �Y'�️ Vista Previa e Imprimir
           </button>
         </div>
 
@@ -269,14 +269,14 @@
     <!-- ========== PANTALLA: LISTADO DE FACTURAS ========== -->
     <div id="view-invoices" class="view hidden">
       <div class="list-controls">
-        <input type="search" id="search-invoices" placeholder="ðŸ” Buscar por cliente, nÃºmero..." />
+        <input type="search" id="search-invoices" placeholder="�Y"� Buscar por cliente, número..." />
         <select id="filter-month">
           <option value="">Todos los meses</option>
         </select>
       </div>
       <div id="invoices-list" class="invoice-list">
         <div class="empty-state">
-          <div class="empty-icon">ðŸ“„</div>
+          <div class="empty-icon">�Y""</div>
           <div class="empty-text">No hay facturas guardadas</div>
         </div>
       </div>
@@ -287,7 +287,7 @@
       <div class="admin-tabs">
         <button class="admin-tab active" data-admintab="overview">Resumen</button>
         <button class="admin-tab" data-admintab="all-invoices">Todas las Facturas</button>
-        <button class="admin-tab" data-admintab="technicians">TÃ©cnicos</button>
+        <button class="admin-tab" data-admintab="technicians">Técnicos</button>
         <button class="admin-tab" data-admintab="company">Empresa</button>
       </div>
 
@@ -295,23 +295,23 @@
       <div id="admin-overview" class="admin-content active">
         <div class="admin-stats-grid">
           <div class="admin-stat glass">
-            <div class="admin-stat-icon">ðŸ§¾</div>
+            <div class="admin-stat-icon">�Y��</div>
             <div class="admin-stat-num" id="admin-total-invoices">0</div>
             <div class="admin-stat-label">Facturas Totales</div>
           </div>
           <div class="admin-stat glass">
-            <div class="admin-stat-icon">ðŸ’°</div>
-            <div class="admin-stat-num" id="admin-total-amount">0,00 â‚¬</div>
+            <div class="admin-stat-icon">�Y'�</div>
+            <div class="admin-stat-num" id="admin-total-amount">0,00 �,�</div>
             <div class="admin-stat-label">Total Facturado</div>
           </div>
           <div class="admin-stat glass">
-            <div class="admin-stat-icon">ðŸ‘·</div>
+            <div class="admin-stat-icon">�Y'�</div>
             <div class="admin-stat-num" id="admin-total-techs">0</div>
-            <div class="admin-stat-label">TÃ©cnicos Activos</div>
+            <div class="admin-stat-label">Técnicos Activos</div>
           </div>
         </div>
         <div class="section">
-          <h3 class="section-title">Por TÃ©cnico (este mes)</h3>
+          <h3 class="section-title">Por Técnico (este mes)</h3>
           <div id="admin-by-tech"></div>
         </div>
       </div>
@@ -319,40 +319,40 @@
       <!-- Sub-vista: Todas las facturas -->
       <div id="admin-all-invoices" class="admin-content hidden">
         <div class="list-controls">
-          <input type="search" id="admin-search" placeholder="ðŸ” Buscar..." />
-          <button class="btn btn-outline btn-sm" id="btn-export-csv">â¬‡ï¸ Exportar CSV</button>
+          <input type="search" id="admin-search" placeholder="�Y"� Buscar..." />
+          <button class="btn btn-outline btn-sm" id="btn-export-csv">�?️ Exportar CSV</button>
         </div>
         <div id="admin-invoices-list" class="invoice-list"></div>
       </div>
 
-      <!-- Sub-vista: TÃ©cnicos -->
+      <!-- Sub-vista: Técnicos -->
       <div id="admin-technicians" class="admin-content hidden">
         <div class="section-header">
-          <h3 class="section-title">TÃ©cnicos</h3>
-          <button class="btn btn-primary btn-sm" id="btn-add-tech">+ AÃ±adir</button>
+          <h3 class="section-title">Técnicos</h3>
+          <button class="btn btn-primary btn-sm" id="btn-add-tech">+ Añadir</button>
         </div>
         <div id="techs-list" class="techs-list"></div>
 
         <div id="tech-form-modal" class="modal hidden">
           <div class="modal-overlay" id="tech-modal-overlay"></div>
           <div class="modal-card glass">
-            <h3 class="modal-title" id="tech-modal-title">Nuevo TÃ©cnico</h3>
+            <h3 class="modal-title" id="tech-modal-title">Nuevo Técnico</h3>
             <div class="field-group">
               <label for="tech-name-input">Nombre</label>
-              <input type="text" id="tech-name-input" placeholder="Juan PÃ©rez" />
+              <input type="text" id="tech-name-input" placeholder="Juan Pérez" />
             </div>
             <div class="field-group">
               <label for="tech-user-input">Usuario</label>
               <input type="text" id="tech-user-input" placeholder="juanperez" />
             </div>
             <div class="field-group">
-              <label for="tech-pass-input">ContraseÃ±a</label>
-              <input type="password" id="tech-pass-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+              <label for="tech-pass-input">Contraseña</label>
+              <input type="password" id="tech-pass-input" placeholder="�?��?��?��?��?��?��?��?�" />
             </div>
             <div class="field-group">
               <label for="tech-role-input">Rol</label>
               <select id="tech-role-input">
-                <option value="tech">TÃ©cnico</option>
+                <option value="tech">Técnico</option>
                 <option value="admin">Administrador</option>
               </select>
             </div>
@@ -367,9 +367,9 @@
       <!-- Sub-vista: Empresa -->
       <div id="admin-company" class="admin-content hidden">
         <div class="form-section">
-          <h3 class="form-section-title">ðŸ¢ Datos de la Empresa</h3>
+          <h3 class="form-section-title">�Y�� Datos de la Empresa</h3>
           <div class="field-group">
-            <label for="comp-name">RazÃ³n Social</label>
+            <label for="comp-name">Razón Social</label>
             <input type="text" id="comp-name" placeholder="Multiservicios Borgil S.L." />
           </div>
           <div class="field-group">
@@ -377,7 +377,7 @@
             <input type="text" id="comp-cif" placeholder="B12345678" />
           </div>
           <div class="field-group">
-            <label for="comp-address">DirecciÃ³n</label>
+            <label for="comp-address">Dirección</label>
             <input type="text" id="comp-address" placeholder="Calle Mayor, 1" />
           </div>
           <div class="field-row">
@@ -386,12 +386,12 @@
               <input type="text" id="comp-cp" placeholder="50300" maxlength="5" />
             </div>
             <div class="field-group" style="flex:2">
-              <label for="comp-city">PoblaciÃ³n</label>
+              <label for="comp-city">Población</label>
               <input type="text" id="comp-city" placeholder="Calatayud" />
             </div>
           </div>
           <div class="field-group">
-            <label for="comp-phone">TelÃ©fono</label>
+            <label for="comp-phone">Teléfono</label>
             <input type="tel" id="comp-phone" placeholder="976 000 000" />
           </div>
           <div class="field-group">
@@ -410,29 +410,29 @@
             <label for="comp-footer">Texto al pie de factura</label>
             <textarea id="comp-footer" rows="2" placeholder="Gracias por confiar en nosotros."></textarea>
           </div>
-          <button class="btn btn-primary btn-block" id="btn-save-company">ðŸ’¾ Guardar Datos Empresa</button>
+          <button class="btn btn-primary btn-block" id="btn-save-company">�Y'� Guardar Datos Empresa</button>
         </div>
       </div>
     </div>
     <!-- ========== PANTALLA: AVISOS ========== -->
     <div id="view-avisos" class="view hidden">
       <div class="list-controls">
-        <input type="search" id="search-avisos" placeholder="🔍 Buscar cliente, marca, siniestro..." />
+        <input type="search" id="search-avisos" placeholder="?? Buscar cliente, marca, siniestro..." />
         <select id="filter-aviso-status">
           <option value="">Todos los estados</option>
-          <option value="pending_visit">🔴 Pendiente 1a visita</option>
-          <option value="pending_parts">🟡 Pendiente repuestos</option>
-          <option value="parts_received">🟠 Repuestos recepcionados</option>
-          <option value="pending_repair">🔵 Pendiente de reparar</option>
-          <option value="invoiced">🟢 Facturado</option>
-          <option value="paid">✅ Pagado</option>
+          <option value="pending_visit">?? Pendiente 1a visita</option>
+          <option value="pending_parts">?? Pendiente repuestos</option>
+          <option value="parts_received">?? Repuestos recepcionados</option>
+          <option value="pending_repair">?? Pendiente de reparar</option>
+          <option value="invoiced">?? Facturado</option>
+          <option value="paid">? Pagado</option>
         </select>
         <select id="filter-aviso-tech" class="hidden">
           <option value="">Todos los tecnicos</option>
         </select>
       </div>
       <div style="padding:16px 16px 0;">
-        <button class="btn btn-primary btn-block" id="btn-new-aviso">📋 Nuevo Aviso</button>
+        <button class="btn btn-primary btn-block" id="btn-new-aviso">?? Nuevo Aviso</button>
       </div>
       <div id="avisos-list" class="invoice-list" style="padding:16px;"></div>
     </div>
@@ -450,22 +450,22 @@
     <div class="modal-card preview-modal glass">
       <div class="preview-header">
         <h3>Vista Previa de Factura</h3>
-        <button class="btn-close" id="btn-close-preview">âœ•</button>
+        <button class="btn-close" id="btn-close-preview">�o.</button>
       </div>
       <div id="invoice-preview-content" class="invoice-preview-content">
-        <!-- Generado dinÃ¡micamente -->
+        <!-- Generado dinámicamente -->
       </div>
       <div class="preview-actions" style="display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; gap: 8px;">
-          <button class="btn btn-outline" id="btn-print-invoice" style="flex: 1;">ðŸ–¨ï¸ Imprimir</button>
-          <button class="btn btn-outline" id="btn-download-pdf" style="flex: 1;">ðŸ“„ Descargar PDF</button>
+          <button class="btn btn-outline" id="btn-print-invoice" style="flex: 1;">�Y-�️ Imprimir</button>
+          <button class="btn btn-outline" id="btn-download-pdf" style="flex: 1;">�Y"" Descargar PDF</button>
         </div>
-        <button class="btn btn-primary" id="btn-share-invoice">ðŸ“¤ Compartir (WhatsApp/Email)</button>
+        <button class="btn btn-primary" id="btn-share-invoice">�Y"� Compartir (WhatsApp/Email)</button>
       </div>
     </div>
   </div>
 
-  <!-- ========== ÃREA DE IMPRESIÃ“N OCULTA ========== -->
+  <!-- ========== ÁREA DE IMPRESI�"N OCULTA ========== -->
   <div id="print-area" class="print-only"></div>
   <!-- ========== MODAL: FORMULARIO AVISO ========== -->
   <div id="modal-aviso-form" class="modal hidden"></div>

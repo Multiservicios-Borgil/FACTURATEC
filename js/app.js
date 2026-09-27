@@ -1,6 +1,6 @@
 /* ===================================================
-   app.js â€“ Controlador principal
-   Maneja la navegaciÃ³n, eventos y flujo de la app
+   app.js �?" Controlador principal
+   Maneja la navegación, eventos y flujo de la app
    =================================================== */
 
 // ============================================================
@@ -20,7 +20,7 @@ function showToast(message, type = 'info', duration = 3000) {
 }
 
 // ============================================================
-// NAVEGACIÃ“N ENTRE VISTAS
+// NAVEGACI�"N ENTRE VISTAS
 // ============================================================
 const App = {
   currentView: 'dashboard',
@@ -79,17 +79,17 @@ const App = {
         document.getElementById('login-error').classList.remove('hidden');
         document.getElementById('login-pass').value = '';
         btn.disabled    = false;
-        btn.textContent = 'Iniciar SesiÃ³n';
+        btn.textContent = 'Iniciar Sesión';
       }
     });
   },
 
   startApp(userFromFirebase) {
-    // Si Firebase nos pasa el usuario, actualizar sesiÃ³n desde cachÃ©
+    // Si Firebase nos pasa el usuario, actualizar sesión desde caché
     if (userFromFirebase && FIREBASE_CONFIGURED) {
-      // La sesiÃ³n ya estÃ¡ en DB._cache.session tras onAuthStateChanged
+      // La sesión ya está en DB._cache.session tras onAuthStateChanged
       if (!DB.getSession()) {
-        // Puede que el perfil Firestore no estÃ© listo aun, esperar un tick
+        // Puede que el perfil Firestore no esté listo aun, esperar un tick
         setTimeout(() => this.startApp(), 300);
         return;
       }
@@ -113,7 +113,7 @@ const App = {
 
     // Saludo
     const hour = new Date().getHours();
-    const greeting = hour < 13 ? 'Buenos dÃ­as' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
+    const greeting = hour < 13 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
     document.getElementById('hero-greeting').textContent = `${greeting}, ${session.name}`;
 
     // Mostrar panel admin si corresponde
@@ -158,13 +158,13 @@ const App = {
       });
     });
 
-    // Botones aÃ±adir lÃ­nea
+    // Botones añadir línea
     document.getElementById('btn-add-labor').addEventListener('click', () => InvoiceManager.addLine('labor'));
     document.getElementById('btn-add-part').addEventListener('click', () => InvoiceManager.addLine('part'));
     document.getElementById('btn-add-travel').addEventListener('click', () => InvoiceManager.addLine('travel'));
     document.getElementById('btn-add-custom').addEventListener('click', () => InvoiceManager.addLine('custom'));
 
-    // DelegaciÃ³n de eventos en lÃ­neas (editar / eliminar)
+    // Delegación de eventos en líneas (editar / eliminar)
     document.getElementById('line-items-container').addEventListener('input', e => {
       const input = e.target;
       const lineId = input.dataset.line;
@@ -180,7 +180,7 @@ const App = {
       }
     });
 
-    // Serie â†’ actualizar nÃºmero de factura preview
+    // Serie �?' actualizar número de factura preview
     const updateInvoiceNumberPreview = async (series) => {
       const s   = (series || 'A').toUpperCase().trim();
       const num = await Promise.resolve(DB.peekNextInvoiceNumber(s));
@@ -199,21 +199,21 @@ const App = {
       btn.textContent  = 'Guardando...';
       try {
         const invoice = InvoiceManager.buildInvoiceData();
-        // Obtener nÃºmero real (async, atÃ³mico en Firestore)
+        // Obtener número real (async, atómico en Firestore)
         const series  = document.getElementById('inv-series').value.toUpperCase().trim() || 'A';
         const num     = await DB.getNextInvoiceNumber(series);
         invoice.num   = num;
         invoice.number = `${series}${new Date().getFullYear()}-${String(num).padStart(4,'0')}`;
         await DB.addInvoice(invoice);
-        showToast(`âœ… Factura ${invoice.number} guardada`, 'success');
+        showToast(`�o. Factura ${invoice.number} guardada`, 'success');
         PrintManager.showPreview(invoice);
         InvoiceManager.initForm();
       } catch(err) {
-        showToast('Error al guardar la factura. Comprueba la conexiÃ³n.', 'error');
+        showToast('Error al guardar la factura. Comprueba la conexión.', 'error');
         console.error(err);
       } finally {
         btn.disabled    = false;
-        btn.textContent = 'ðŸ’¾ Guardar Factura';
+        btn.textContent = '�Y'� Guardar Factura';
       }
     });
 
@@ -238,7 +238,7 @@ const App = {
     InvoiceManager.renderInvoiceList('invoices-list', invoices, isAdmin);
     InvoiceManager.populateMonthFilter('filter-month');
 
-    // BÃºsqueda
+    // Búsqueda
     document.getElementById('search-invoices').addEventListener('input', e => {
       this.filterInvoices();
     });
@@ -299,7 +299,7 @@ const App = {
       showToast('CSV exportado correctamente', 'success');
     });
 
-    // BÃºsqueda admin
+    // Búsqueda admin
     document.getElementById('admin-search').addEventListener('input', () => {
       const q = document.getElementById('admin-search').value.toLowerCase();
       let invoices = DB.getInvoices();
@@ -311,7 +311,7 @@ const App = {
       InvoiceManager.renderInvoiceList('admin-invoices-list', invoices, true);
     });
 
-    // GestiÃ³n tÃ©cnicos
+    // Gestión técnicos
     document.getElementById('btn-add-tech').addEventListener('click', () => this.openTechModal());
     document.getElementById('btn-cancel-tech').addEventListener('click', () => this.closeTechModal());
     document.getElementById('tech-modal-overlay').addEventListener('click', () => this.closeTechModal());
@@ -331,7 +331,7 @@ const App = {
     const container = document.getElementById('techs-list');
     container.innerHTML = '';
     if (users.length === 0) {
-      container.innerHTML = `<div class="empty-state-mini">No hay tÃ©cnicos registrados</div>`;
+      container.innerHTML = `<div class="empty-state-mini">No hay técnicos registrados</div>`;
       return;
     }
     users.forEach(u => {
@@ -342,7 +342,7 @@ const App = {
           <div class="tech-name">
             ${InvoiceManager.escapeHtml(u.name)}
             <span class="tech-role-badge ${u.role === 'admin' ? 'role-admin' : 'role-tech'}">
-              ${u.role === 'admin' ? 'ðŸ›¡ï¸ Admin' : 'ðŸ‘· TÃ©cnico'}
+              ${u.role === 'admin' ? '�Y>�� Admin' : '�Y'� Técnico'}
             </span>
           </div>
           <div class="tech-user">@${InvoiceManager.escapeHtml(u.username)}</div>
@@ -359,10 +359,10 @@ const App = {
       const delBtn = e.target.closest('[data-delete-tech]');
       if (editBtn) this.openTechModal(editBtn.dataset.editTech);
       if (delBtn) {
-        if (confirm('Â¿Eliminar este tÃ©cnico?')) {
+        if (confirm('¿Eliminar este técnico?')) {
           DB.deleteUser(delBtn.dataset.deleteTech);
           this.loadTechsList();
-          showToast('TÃ©cnico eliminado', 'info');
+          showToast('Técnico eliminado', 'info');
         }
       }
     });
@@ -370,7 +370,7 @@ const App = {
 
   openTechModal(userId = null) {
     const modal = document.getElementById('tech-form-modal');
-    document.getElementById('tech-modal-title').textContent = userId ? 'Editar TÃ©cnico' : 'Nuevo TÃ©cnico';
+    document.getElementById('tech-modal-title').textContent = userId ? 'Editar Técnico' : 'Nuevo Técnico';
     document.getElementById('btn-save-tech').dataset.editId = userId || '';
     // Limpiar campos
     ['tech-name-input','tech-user-input','tech-pass-input'].forEach(id => document.getElementById(id).value = '');
@@ -399,7 +399,7 @@ const App = {
     const role     = document.getElementById('tech-role-input').value;
 
     if (!name || !username) { showToast('Nombre y usuario son obligatorios', 'error'); return; }
-    if (!editId && !password) { showToast('La contraseÃ±a es obligatoria para nuevos tÃ©cnicos', 'error'); return; }
+    if (!editId && !password) { showToast('La contraseña es obligatoria para nuevos técnicos', 'error'); return; }
 
     const btn          = document.getElementById('btn-save-tech');
     btn.disabled       = true;
@@ -411,11 +411,11 @@ const App = {
         if (password) updates.password = password;
         const res = await DB.updateUser(editId, updates);
         if (!res.ok) { showToast(res.error, 'error'); return; }
-        showToast('TÃ©cnico actualizado correctamente', 'success');
+        showToast('Técnico actualizado correctamente', 'success');
       } else {
         const res = await DB.addUser({ name, username, password, role });
         if (!res.ok) { showToast(res.error, 'error'); return; }
-        showToast('TÃ©cnico creado correctamente', 'success');
+        showToast('Técnico creado correctamente', 'success');
       }
       this.closeTechModal();
       this.loadTechsList();
@@ -454,9 +454,9 @@ const App = {
     };
     try {
       await DB.saveCompany(company);
-      showToast('âœ… Datos de empresa guardados', 'success');
+      showToast('�o. Datos de empresa guardados', 'success');
     } catch(e) {
-      showToast('Error al guardar. Comprueba la conexiÃ³n.', 'error');
+      showToast('Error al guardar. Comprueba la conexión.', 'error');
     }
   },
 
@@ -464,41 +464,41 @@ const App = {
   // SETUP GLOBAL DE EVENTOS
   // ============================================================
   setupEventListeners() {
-    // BotÃ³n volver
+    // Botón volver
     document.getElementById('btn-back').addEventListener('click', () => this.goBack());
 
-    // BotÃ³n logout
+    // Botón logout
     document.getElementById('btn-logout').addEventListener('click', async () => {
-      if (confirm('Â¿Cerrar sesiÃ³n?')) {
+      if (confirm('¿Cerrar sesión?')) {
         await DB.logout();
         location.reload();
       }
     });
 
-    // Dashboard â†’ Nueva factura
+    // Dashboard �?' Nueva factura
     document.getElementById('btn-new-invoice').addEventListener('click', () => {
       InvoiceManager.initForm();
       this.showView('new-invoice', 'Nueva Factura');
     });
 
-    // Dashboard â†’ Mis facturas
+    // Dashboard �?' Mis facturas
     document.getElementById('btn-view-invoices').addEventListener('click', () => {
       this.showView('invoices', 'Mis Facturas');
       this.loadInvoiceList();
     });
 
-    // Dashboard â†’ Admin
+    // Dashboard �?' Admin
     document.getElementById('btn-admin').addEventListener('click', () => {
-      this.showView('admin', 'Panel de AdministraciÃ³n');
+      this.showView('admin', 'Panel de Administración');
       this.initAdminPanel();
       InvoiceManager.updateDashboardStats(null);
     });
 
-    // Dashboard â†’ ConfiguraciÃ³n (mismo que admin para el jefe)
+    // Dashboard �?' Configuración (mismo que admin para el jefe)
     document.getElementById('btn-settings').addEventListener('click', () => {
-      this.showView('admin', 'ConfiguraciÃ³n');
+      this.showView('admin', 'Configuración');
       this.initAdminPanel();
-      // Ir directo a la pestaÃ±a de empresa
+      // Ir directo a la pestaña de empresa
       const tab = document.querySelector('[data-admintab="company"]');
       if (tab) tab.click();
     });
@@ -512,7 +512,7 @@ const App = {
       }
     });
 
-    // Click en facturas de la lista completa (delegaciÃ³n)
+    // Click en facturas de la lista completa (delegación)
     document.getElementById('invoices-list').addEventListener('click', e => {
       this._handleInvoiceListClick(e, false);
     });
@@ -553,7 +553,7 @@ const App = {
           if (techSel) {
             techSel.classList.remove('hidden');
             var users = DB.getUsers();
-            techSel.innerHTML = '<option value="">Todos los Técnicos</option>' +
+            techSel.innerHTML = '<option value="">Todos los T�cnicos</option>' +
               users.map(function(u){ return '<option value="' + u.id + '">' + u.name + '</option>'; }).join('');
           }
         }
@@ -586,10 +586,10 @@ const App = {
       } else if (action === 'delete') {
         const session = DB.getSession();
         if (session?.role !== 'admin') {
-          showToast('â›” Solo el administrador puede eliminar facturas', 'error');
+          showToast('�>" Solo el administrador puede eliminar facturas', 'error');
           return;
         }
-        if (confirm('Â¿Eliminar esta factura? Esta acciÃ³n no se puede deshacer.')) {
+        if (confirm('¿Eliminar esta factura? Esta acción no se puede deshacer.')) {
           try {
             await DB.deleteInvoice(id);
             showToast('Factura eliminada', 'info');
@@ -597,7 +597,7 @@ const App = {
             else         this.filterInvoices();
             this.refreshDashboard();
           } catch(e) {
-            showToast('Error al eliminar. Comprueba la conexiÃ³n.', 'error');
+            showToast('Error al eliminar. Comprueba la conexión.', 'error');
           }
         }
       }
@@ -605,13 +605,13 @@ const App = {
   },
 
   // ============================================================
-  // ARRANQUE ASÃNCRONO (Firebase o localStorage)
+  // ARRANQUE AS�NCRONO (Firebase o localStorage)
   // ============================================================
   async init() {
     // Spinner de carga
     document.body.insertAdjacentHTML('afterbegin', `
       <div id="app-loader" style="position:fixed;inset:0;background:#0a0d14;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px">
-        <div style="font-size:3.5rem;filter:drop-shadow(0 0 20px #4f7cff)">âš¡</div>
+        <div style="font-size:3.5rem;filter:drop-shadow(0 0 20px #4f7cff)">�s�</div>
         <div style="color:#4f7cff;font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:600">Cargando FacturaTec...</div>
         <div style="width:36px;height:36px;border:3px solid rgba(79,124,255,0.2);border-top-color:#4f7cff;border-radius:50%;animation:spin 0.8s linear infinite"></div>
       </div>
@@ -627,9 +627,9 @@ const App = {
     hideLoader();
 
     if (FIREBASE_CONFIGURED) {
-      // Firebase gestiona la sesiÃ³n mediante onAuthStateChanged
+      // Firebase gestiona la sesión mediante onAuthStateChanged
       if (firebaseUser) {
-        // Usuario ya autenticado en Firebase â€” esperar que Firestore cargue el perfil
+        // Usuario ya autenticado en Firebase �?" esperar que Firestore cargue el perfil
         let tries = 0;
         const waitForSession = () => {
           if (DB.getSession()) {
@@ -637,7 +637,7 @@ const App = {
           } else if (tries++ < 10) {
             setTimeout(waitForSession, 200);
           } else {
-            // Sin perfil Firestore â€” podrÃ­a ser primera vez, ir al login
+            // Sin perfil Firestore �?" podría ser primera vez, ir al login
             this.initLogin();
             document.getElementById('screen-login').classList.add('active');
           }
@@ -671,7 +671,7 @@ const App = {
   }
 };
 
-// Arrancar cuando el DOM estÃ© listo
+// Arrancar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => App.init());
 
 
