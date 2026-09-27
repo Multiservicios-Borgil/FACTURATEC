@@ -540,6 +540,38 @@ const App = {
     });
 
     // Init form events
+
+    // ---- AVISOS ----
+    var btnAvisos = document.getElementById('btn-avisos');
+    if (btnAvisos) {
+      btnAvisos.addEventListener('click', function() {
+        var sess = DB.getSession();
+        var isAdmin = sess && sess.role === 'admin';
+        App.showView('avisos', 'Avisos / Partes de Trabajo');
+        if (isAdmin) {
+          var techSel = document.getElementById('filter-aviso-tech');
+          if (techSel) {
+            techSel.classList.remove('hidden');
+            var users = DB.getUsers();
+            techSel.innerHTML = '<option value="">Todos los tecnicos</option>' +
+              users.map(function(u){ return '<option value="' + u.id + '">' + u.name + '</option>'; }).join('');
+          }
+        }
+        AvisosManager.filterAndRender('avisos-list', isAdmin);
+      });
+    }
+    var btnNewAviso = document.getElementById('btn-new-aviso');
+    if (btnNewAviso) btnNewAviso.addEventListener('click', function() { AvisosManager.openForm(); });
+    var searchAvisos = document.getElementById('search-avisos');
+    if (searchAvisos) searchAvisos.addEventListener('input', function() {
+      var sess = DB.getSession();
+      AvisosManager.filterAndRender('avisos-list', sess && sess.role === 'admin');
+    });
+    var filterAvStatus = document.getElementById('filter-aviso-status');
+    if (filterAvStatus) filterAvStatus.addEventListener('change', function() {
+      var sess = DB.getSession();
+      AvisosManager.filterAndRender('avisos-list', sess && sess.role === 'admin');
+    });
     this.initNewInvoiceForm();
   },
 
@@ -641,5 +673,6 @@ const App = {
 
 // Arrancar cuando el DOM estÃ© listo
 document.addEventListener('DOMContentLoaded', () => App.init());
+
 
 
