@@ -342,7 +342,7 @@ const App = {
           <div class="tech-name">
             ${InvoiceManager.escapeHtml(u.name)}
             <span class="tech-role-badge ${u.role === 'admin' ? 'role-admin' : 'role-tech'}">
-              ${u.role === 'admin' ? '�Y>�� Admin' : '�Y'� Técnico'}
+              ${u.role === 'admin' ? '⭐ Admin' : '🔧 Tecnico'}
             </span>
           </div>
           <div class="tech-user">@${InvoiceManager.escapeHtml(u.username)}</div>
