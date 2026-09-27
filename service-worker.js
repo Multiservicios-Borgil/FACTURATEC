@@ -1,5 +1,5 @@
-?/* ===================================================
-   service-worker.js �?" Caché offline para PWA
+/* ===================================================
+   service-worker.js - Cacheé offline para PWA
    =================================================== */
 
 const CACHE_NAME = 'facturatec-v3';
