@@ -321,7 +321,7 @@ const InvoiceManager = {
     const thisMonth = new Date().toISOString().slice(0, 7);
     const allThisMonth = DB.getInvoices().filter(inv => inv.date?.startsWith(thisMonth));
 
-    // Agrupar por técnico
+    // Agrupar por Técnico
     const byTech = {};
     allThisMonth.forEach(inv => {
       if (!byTech[inv.techName]) byTech[inv.techName] = { count: 0, total: 0 };

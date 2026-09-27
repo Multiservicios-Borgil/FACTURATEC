@@ -1,4 +1,4 @@
-﻿/* ===================================================
+/* ===================================================
    app.js â€“ Controlador principal
    Maneja la navegaciÃ³n, eventos y flujo de la app
    =================================================== */
@@ -342,7 +342,7 @@ const App = {
           <div class="tech-name">
             ${InvoiceManager.escapeHtml(u.name)}
             <span class="tech-role-badge ${u.role === 'admin' ? 'role-admin' : 'role-tech'}">
-              ${u.role === 'admin' ? 'ðŸ›¡ï¸ Admin' : 'ðŸ‘· TÃ©cnico'}
+              ${u.role === 'admin' ? 'ðŸ›¡ï¸ Admin' : 'ðŸ‘· TÃ©cnico'}
             </span>
           </div>
           <div class="tech-user">@${InvoiceManager.escapeHtml(u.username)}</div>
@@ -553,7 +553,7 @@ const App = {
           if (techSel) {
             techSel.classList.remove('hidden');
             var users = DB.getUsers();
-            techSel.innerHTML = '<option value="">Todos los tecnicos</option>' +
+            techSel.innerHTML = '<option value="">Todos los Técnicos</option>' +
               users.map(function(u){ return '<option value="' + u.id + '">' + u.name + '</option>'; }).join('');
           }
         }
@@ -605,7 +605,7 @@ const App = {
   },
 
   // ============================================================
-  // ARRANQUE ASÃNCRONO (Firebase o localStorage)
+  // ARRANQUE ASÃNCRONO (Firebase o localStorage)
   // ============================================================
   async init() {
     // Spinner de carga

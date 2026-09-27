@@ -1,4 +1,4 @@
-﻿/* ===================================================
+/* ===================================================
    data-firebase.js â€” Capa de datos con Firebase
    Reemplaza data.js cuando Firebase estÃ¡ configurado.
    Usa cachÃ© en memoria para operaciones sÃ­ncronas,
