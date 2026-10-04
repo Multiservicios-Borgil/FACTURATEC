@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Facturación" />
   <meta name="description" content="Software de facturación para técnicos en campo con impresión Bluetooth." />
-  <title>FacturaTec �?" Facturación Profesional</title>
+  <title>FacturaTec — Facturación Profesional</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
   <link rel="apple-touch-icon" href="icons/icon.svg" />
@@ -37,7 +37,7 @@
     </div>
     <div class="login-card glass">
       <div class="login-logo">
-        <div class="logo-icon">�s�</div>
+        <div class="logo-icon">⚡</div>
         <h1 class="logo-title">FacturaTec</h1>
         <p class="logo-sub">Facturación Profesional</p>
       </div>
@@ -48,12 +48,12 @@
         </div>
         <div class="field-group">
           <label for="login-pass">Contraseña</label>
-          <input type="password" id="login-pass" placeholder="�?��?��?��?��?��?��?��?�" autocomplete="current-password" />
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" />
         </div>
         <div id="login-error" class="login-error hidden">Usuario o contraseña incorrectos</div>
         <button type="submit" class="btn btn-primary btn-block" id="btn-login">Iniciar Sesión</button>
       </form>
-      <p class="login-hint">Versión 1.0 �?" Uso restringido a personal autorizado</p>
+      <p class="login-hint">Versión 1.0 — Uso restringido a personal autorizado</p>
     </div>
   </div>
 
@@ -63,12 +63,12 @@
     <!-- TOP BAR -->
     <header class="topbar" id="topbar">
       <button class="topbar-back hidden" id="btn-back" aria-label="Volver">
-        <span class="icon">�?�</span>
+        <span class="icon">←</span>
       </button>
       <div class="topbar-title" id="topbar-title">Inicio</div>
       <div class="topbar-actions">
         <span class="topbar-user" id="topbar-user"></span>
-        <button class="topbar-btn" id="btn-logout" title="Cerrar sesión">�Z<</button>
+        <button class="topbar-btn" id="btn-logout" title="Cerrar sesión">🚪</button>
       </div>
     </header>
 
@@ -79,11 +79,11 @@
         <div class="hero-stats">
           <div class="stat-card glass">
             <div class="stat-label">Hoy</div>
-            <div class="stat-value" id="stat-today">0,00 �,�</div>
+            <div class="stat-value" id="stat-today">0,00 €</div>
           </div>
           <div class="stat-card glass">
             <div class="stat-label">Este mes</div>
-            <div class="stat-value" id="stat-month">0,00 �,�</div>
+            <div class="stat-value" id="stat-month">0,00 €</div>
           </div>
           <div class="stat-card glass">
             <div class="stat-label">Facturas mes</div>
@@ -94,22 +94,22 @@
 
       <div class="action-buttons">
         <button class="action-card primary-action" id="btn-new-invoice">
-          <span class="action-icon">�z.</span>
+          <span class="action-icon">➕</span>
           <span class="action-label">Nueva Factura</span>
           <span class="action-desc">Crear factura al cliente</span>
         </button>
         <button class="action-card" id="btn-view-invoices">
-          <span class="action-icon">�Y"<</span>
+          <span class="action-icon">📋</span>
           <span class="action-label">Mis Facturas</span>
           <span class="action-desc">Historial y búsqueda</span>
         </button>
         <button class="action-card" id="btn-avisos">
-          <span class="action-icon">??</span>
+          <span class="action-icon">🔧</span>
           <span class="action-label">Avisos</span>
           <span class="action-desc">Partes de trabajo y reparaciones</span>
         </button>
         <button class="action-card" id="btn-settings" style="display:none">
-          <span class="action-icon">�sT️</span>
+          <span class="action-icon">⚙️</span>
           <span class="action-label">Configuración</span>
           <span class="action-desc">Datos empresa y técnicos</span>
         </button>
@@ -118,16 +118,16 @@
       <!-- Admin panel button (solo para admin) -->
       <div id="admin-panel-btn" class="hidden">
         <button class="action-card admin-card" id="btn-admin">
-          <span class="action-icon">�Y>�️</span>
+          <span class="action-icon">🛡️</span>
           <span class="action-label">Panel de Administración</span>
           <span class="action-desc">Gestión global de facturas y técnicos</span>
         </button>
       </div>
 
-      <!-- �sLTIMAS FACTURAS RÁPIDAS -->
+      <!-- ÚLTIMAS FACTURAS RÁPIDAS -->
       <div class="section">
         <div class="section-header">
-          <h2 class="section-title">�sltimas facturas</h2>
+          <h2 class="section-title">Últimas facturas</h2>
         </div>
         <div id="recent-invoices-list" class="invoice-list-mini">
           <div class="empty-state-mini">No hay facturas aún. ¡Crea la primera!</div>
@@ -143,7 +143,7 @@
         <div class="form-section">
           <div class="invoice-number-badge">
             <span class="inv-num-label">Nº Factura:</span>
-            <span class="inv-num-value" id="invoice-number-display">�?"</span>
+            <span class="inv-num-value" id="invoice-number-display">—</span>
           </div>
           <div class="field-row">
             <div class="field-group">
@@ -159,7 +159,7 @@
 
         <!-- Datos del cliente -->
         <div class="form-section">
-          <h3 class="form-section-title">�Y'� Datos del Cliente</h3>
+          <h3 class="form-section-title">👤 Datos del Cliente</h3>
           <div class="field-group">
             <label for="cli-nif">DNI / NIF / CIF <span class="required">*</span></label>
             <input type="text" id="cli-nif" placeholder="12345678A" maxlength="20" />
@@ -190,7 +190,7 @@
 
         <!-- Líneas de factura -->
         <div class="form-section">
-          <h3 class="form-section-title">�Y"� Conceptos</h3>
+          <h3 class="form-section-title">📝 Conceptos</h3>
           <div id="line-items-container">
             <!-- Las líneas se generan dinámicamente -->
           </div>
@@ -204,7 +204,7 @@
 
         <!-- Totales -->
         <div class="form-section totals-section">
-          <h3 class="form-section-title">�Y'� Totales</h3>
+          <h3 class="form-section-title">💰 Totales</h3>
           <div class="iva-selector">
             <label>Tipo de IVA</label>
             <div class="iva-options">
@@ -216,34 +216,34 @@
           <div class="totals-table">
             <div class="total-row">
               <span>Base Imponible</span>
-              <span id="total-base">0,00 �,�</span>
+              <span id="total-base">0,00 €</span>
             </div>
             <div class="total-row">
               <span>IVA (<span id="iva-pct-display">21</span>%)</span>
-              <span id="total-iva">0,00 �,�</span>
+              <span id="total-iva">0,00 €</span>
             </div>
             <div class="total-row total-final">
               <span>TOTAL</span>
-              <span id="total-final">0,00 �,�</span>
+              <span id="total-final">0,00 €</span>
             </div>
           </div>
         </div>
 
         <!-- Forma de cobro -->
         <div class="form-section">
-          <h3 class="form-section-title">�Y'� Forma de Cobro</h3>
+          <h3 class="form-section-title">💳 Forma de Cobro</h3>
           <div class="payment-methods">
-            <button class="payment-btn active" data-payment="Efectivo">�Y'� Efectivo</button>
-            <button class="payment-btn" data-payment="Tarjeta">�Y'� Tarjeta</button>
-            <button class="payment-btn" data-payment="Bizum">�Y"� Bizum</button>
-            <button class="payment-btn" data-payment="Transferencia">�Y�� Transferencia</button>
+            <button class="payment-btn active" data-payment="Efectivo">💵 Efectivo</button>
+            <button class="payment-btn" data-payment="Tarjeta">💳 Tarjeta</button>
+            <button class="payment-btn" data-payment="Bizum">📱 Bizum</button>
+            <button class="payment-btn" data-payment="Transferencia">🏦 Transferencia</button>
             <button class="payment-btn" data-payment="Pendiente">⏳ Pendiente</button>
           </div>
         </div>
 
         <!-- Observaciones -->
         <div class="form-section">
-          <h3 class="form-section-title">�Y"� Observaciones / Garantía</h3>
+          <h3 class="form-section-title">📝 Observaciones / Garantía</h3>
           <div class="field-group">
             <textarea id="inv-notes" rows="3" placeholder="Garantía de 3 meses en piezas. Trabajo realizado en..."></textarea>
           </div>
@@ -256,10 +256,10 @@
         <!-- Botones de acción -->
         <div class="form-actions">
           <button class="btn btn-primary btn-lg btn-block" id="btn-save-invoice">
-            �Y'� Guardar Factura
+            💾 Guardar Factura
           </button>
           <button class="btn btn-outline btn-block" id="btn-preview-invoice">
-            �Y'�️ Vista Previa e Imprimir
+            👁️ Vista Previa e Imprimir
           </button>
         </div>
 
@@ -269,14 +269,14 @@
     <!-- ========== PANTALLA: LISTADO DE FACTURAS ========== -->
     <div id="view-invoices" class="view hidden">
       <div class="list-controls">
-        <input type="search" id="search-invoices" placeholder="�Y"� Buscar por cliente, número..." />
+        <input type="search" id="search-invoices" placeholder="🔍 Buscar por cliente, número..." />
         <select id="filter-month">
           <option value="">Todos los meses</option>
         </select>
       </div>
       <div id="invoices-list" class="invoice-list">
         <div class="empty-state">
-          <div class="empty-icon">�Y""</div>
+          <div class="empty-icon">📄</div>
           <div class="empty-text">No hay facturas guardadas</div>
         </div>
       </div>
@@ -295,17 +295,17 @@
       <div id="admin-overview" class="admin-content active">
         <div class="admin-stats-grid">
           <div class="admin-stat glass">
-            <div class="admin-stat-icon">�Y��</div>
+            <div class="admin-stat-icon">🧾</div>
             <div class="admin-stat-num" id="admin-total-invoices">0</div>
             <div class="admin-stat-label">Facturas Totales</div>
           </div>
           <div class="admin-stat glass">
-            <div class="admin-stat-icon">�Y'�</div>
-            <div class="admin-stat-num" id="admin-total-amount">0,00 �,�</div>
+            <div class="admin-stat-icon">💰</div>
+            <div class="admin-stat-num" id="admin-total-amount">0,00 €</div>
             <div class="admin-stat-label">Total Facturado</div>
           </div>
           <div class="admin-stat glass">
-            <div class="admin-stat-icon">�Y'�</div>
+            <div class="admin-stat-icon">👥</div>
             <div class="admin-stat-num" id="admin-total-techs">0</div>
             <div class="admin-stat-label">Técnicos Activos</div>
           </div>
@@ -319,8 +319,8 @@
       <!-- Sub-vista: Todas las facturas -->
       <div id="admin-all-invoices" class="admin-content hidden">
         <div class="list-controls">
-          <input type="search" id="admin-search" placeholder="�Y"� Buscar..." />
-          <button class="btn btn-outline btn-sm" id="btn-export-csv">�?️ Exportar CSV</button>
+          <input type="search" id="admin-search" placeholder="🔍 Buscar..." />
+          <button class="btn btn-outline btn-sm" id="btn-export-csv">⬇️ Exportar CSV</button>
         </div>
         <div id="admin-invoices-list" class="invoice-list"></div>
       </div>
@@ -347,7 +347,7 @@
             </div>
             <div class="field-group">
               <label for="tech-pass-input">Contraseña</label>
-              <input type="password" id="tech-pass-input" placeholder="�?��?��?��?��?��?��?��?�" />
+              <input type="password" id="tech-pass-input" placeholder="••••••••" />
             </div>
             <div class="field-group">
               <label for="tech-role-input">Rol</label>
@@ -367,7 +367,7 @@
       <!-- Sub-vista: Empresa -->
       <div id="admin-company" class="admin-content hidden">
         <div class="form-section">
-          <h3 class="form-section-title">�Y�� Datos de la Empresa</h3>
+          <h3 class="form-section-title">🏢 Datos de la Empresa</h3>
           <div class="field-group">
             <label for="comp-name">Razón Social</label>
             <input type="text" id="comp-name" placeholder="Multiservicios Borgil S.L." />
@@ -410,29 +410,29 @@
             <label for="comp-footer">Texto al pie de factura</label>
             <textarea id="comp-footer" rows="2" placeholder="Gracias por confiar en nosotros."></textarea>
           </div>
-          <button class="btn btn-primary btn-block" id="btn-save-company">�Y'� Guardar Datos Empresa</button>
+          <button class="btn btn-primary btn-block" id="btn-save-company">💾 Guardar Datos Empresa</button>
         </div>
       </div>
     </div>
     <!-- ========== PANTALLA: AVISOS ========== -->
     <div id="view-avisos" class="view hidden">
       <div class="list-controls">
-        <input type="search" id="search-avisos" placeholder="?? Buscar cliente, marca, siniestro..." />
+        <input type="search" id="search-avisos" placeholder="🔍 Buscar cliente, marca, siniestro..." />
         <select id="filter-aviso-status">
           <option value="">Todos los estados</option>
-          <option value="pending_visit">?? Pendiente 1a visita</option>
-          <option value="pending_parts">?? Pendiente repuestos</option>
-          <option value="parts_received">?? Repuestos recepcionados</option>
-          <option value="pending_repair">?? Pendiente de reparar</option>
-          <option value="invoiced">?? Facturado</option>
-          <option value="paid">? Pagado</option>
+          <option value="pending_visit">🔴 Pendiente 1a visita</option>
+          <option value="pending_parts">📦 Pendiente repuestos</option>
+          <option value="parts_received">📥 Repuestos recepcionados</option>
+          <option value="pending_repair">🔧 Pendiente de reparar</option>
+          <option value="invoiced">🧾 Facturado</option>
+          <option value="paid">✅ Pagado</option>
         </select>
         <select id="filter-aviso-tech" class="hidden">
           <option value="">Todos los tecnicos</option>
         </select>
       </div>
       <div style="padding:16px 16px 0;">
-        <button class="btn btn-primary btn-block" id="btn-new-aviso">?? Nuevo Aviso</button>
+        <button class="btn btn-primary btn-block" id="btn-new-aviso">➕ Nuevo Aviso</button>
       </div>
       <div id="avisos-list" class="invoice-list" style="padding:16px;"></div>
     </div>
@@ -450,22 +450,22 @@
     <div class="modal-card preview-modal glass">
       <div class="preview-header">
         <h3>Vista Previa de Factura</h3>
-        <button class="btn-close" id="btn-close-preview">�o.</button>
+        <button class="btn-close" id="btn-close-preview">✕</button>
       </div>
       <div id="invoice-preview-content" class="invoice-preview-content">
         <!-- Generado dinámicamente -->
       </div>
       <div class="preview-actions" style="display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; gap: 8px;">
-          <button class="btn btn-outline" id="btn-print-invoice" style="flex: 1;">�Y-�️ Imprimir</button>
-          <button class="btn btn-outline" id="btn-download-pdf" style="flex: 1;">�Y"" Descargar PDF</button>
+          <button class="btn btn-outline" id="btn-print-invoice" style="flex: 1;">🖨️ Imprimir</button>
+          <button class="btn btn-outline" id="btn-download-pdf" style="flex: 1;">📄 Descargar PDF</button>
         </div>
-        <button class="btn btn-primary" id="btn-share-invoice">�Y"� Compartir (WhatsApp/Email)</button>
+        <button class="btn btn-primary" id="btn-share-invoice">📤 Compartir (WhatsApp/Email)</button>
       </div>
     </div>
   </div>
 
-  <!-- ========== ÁREA DE IMPRESI�"N OCULTA ========== -->
+  <!-- ========== ÁREA DE IMPRESIÓN OCULTA ========== -->
   <div id="print-area" class="print-only"></div>
   <!-- ========== MODAL: FORMULARIO AVISO ========== -->
   <div id="modal-aviso-form" class="modal hidden"></div>

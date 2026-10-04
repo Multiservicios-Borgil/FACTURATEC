@@ -1,5 +1,5 @@
 /* ===================================================
-   data-firebase.js �?" Capa de datos con Firebase
+   data-firebase.js — Capa de datos con Firebase
    Reemplaza data.js cuando Firebase está configurado.
    Usa caché en memoria para operaciones síncronas,
    sincronizada en tiempo real con Firestore.
@@ -7,7 +7,7 @@
 
 const DB = {
 
-  // ---------- CACH�? EN MEMORIA ----------
+  // ---------- CACHÉ EN MEMORIA ----------
   _cache: {
     users:    [],
     invoices: [],
@@ -25,7 +25,7 @@ const DB = {
   _listeners: [],
 
   // ============================================================
-  // INICIALIZACI�"N
+  // INICIALIZACIÓN
   // ============================================================
   async init() {
     if (!FIREBASE_CONFIGURED) {
@@ -75,30 +75,33 @@ const DB = {
     const session = this._cache.session;
 
     // Facturas: admin ve todas, técnico solo las suyas
-    let invoiceQuery = this._db.collection('invoices').orderBy('createdAt', 'desc');
-    if (session?.role !== 'admin') {
-      invoiceQuery = invoiceQuery.where('techId', '==', session.id);
-    }
+    // Nota: where('techId') + orderBy('createdAt') exigiria un indice compuesto en
+    // Firestore; sin el, la consulta falla en silencio y el tecnico no ve nada.
+    // Para tecnicos filtramos solo por techId y ordenamos en el cliente.
+    const isAdminSession = session?.role === 'admin';
+    const byCreatedDesc = (a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+    let invoiceQuery = isAdminSession
+      ? this._db.collection('invoices').orderBy('createdAt', 'desc')
+      : this._db.collection('invoices').where('techId', '==', session.id);
 
-    // Listener de avisos
+    // Listener de avisos: todos los usuarios (admin y tecnicos) ven todos los avisos
     var session2 = this._cache.session;
     var avisoQuery = this._db.collection('avisos').orderBy('createdAt', 'desc');
-    if (session2 && session2.role !== 'admin') {
-      avisoQuery = avisoQuery.where('techId', '==', session2.id);
-    }
     var unsubAvisos = avisoQuery.onSnapshot(function(snap) {
-      DB._cache.avisos = snap.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); });
+      DB._cache.avisos = snap.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }).sort(byCreatedDesc);
       if (typeof App !== 'undefined' && App.currentView === 'avisos') {
         AvisosManager.filterAndRender('avisos-list', session2 && session2.role === 'admin');
       }
       if (typeof App !== 'undefined' && App.currentView === 'aviso-detail' && AvisosManager.currentAvisoId) {
         AvisosManager.showDetail(AvisosManager.currentAvisoId);
       }
+    }, function(err) {
+      console.error('Listener avisos:', err);
+      if (typeof showToast === 'function') showToast('No se pudieron cargar los avisos: ' + err.message, 'error');
     });
-    this._listeners.push(unsubAvisos);
 
     const unsubInvoices = invoiceQuery.onSnapshot(snap => {
-      this._cache.invoices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      this._cache.invoices = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort(byCreatedDesc);
       // Refrescar UI si está visible
       if (typeof App !== 'undefined') {
         if (App.currentView === 'dashboard') App.refreshDashboard();
@@ -107,20 +110,18 @@ const DB = {
       }
     }, err => console.warn('Listener facturas:', err));
 
-    // Usuarios (solo admin)
-    let unsubUsers = () => {};
-    if (session?.role === 'admin') {
-      unsubUsers = this._db.collection('users').onSnapshot(snap => {
-        this._cache.users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }, err => console.warn('Listener usuarios:', err));
-    }
+    // Usuarios: todos los cargan (solo lectura) para poder asignar/reasignar avisos.
+    // La gestion de usuarios sigue siendo exclusiva del admin (reglas de Firestore).
+    const unsubUsers = this._db.collection('users').onSnapshot(snap => {
+      this._cache.users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }, err => console.warn('Listener usuarios:', err));
 
     // Empresa
     const unsubCompany = this._db.collection('company').doc('main').onSnapshot(snap => {
       if (snap.exists) this._cache.company = snap.data();
     });
 
-    this._listeners = [unsubInvoices, unsubUsers, unsubCompany];
+    this._listeners = [unsubAvisos, unsubInvoices, unsubUsers, unsubCompany];
   },
 
   _removeListeners() {
@@ -129,7 +130,7 @@ const DB = {
   },
 
   // ============================================================
-  // SESI�"N / AUTENTICACI�"N
+  // SESIÓN / AUTENTICACIÓN
   // ============================================================
   getSession() { return this._cache.session; },
 
@@ -162,7 +163,7 @@ const DB = {
   clearSession() { this._cache.session = null; },
 
   // ============================================================
-  // USUARIOS / T�?CNICOS
+  // USUARIOS / TÉCNICOS
   // ============================================================
   getUsers() { return this._cache.users; },
 
@@ -258,7 +259,7 @@ const DB = {
     await this._db.collection('invoices').doc(id).delete();
   },
 
-  // Número de factura �?" Transacción atómica en Firestore
+  // Número de factura — Transacción atómica en Firestore
   async getNextInvoiceNumber(series) {
     if (!this._initialized) return this._localGetNextNumber(series);
     const year    = new Date().getFullYear();

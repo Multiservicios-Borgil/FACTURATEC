@@ -1,6 +1,6 @@
 /* ===================================================
    firebase-config.js
-   INSTRUCCIONES: Pega aqu� tu configuraci�n de Firebase.
+   INSTRUCCIONES: Pega aquí tu configuración de Firebase.
    Obtenerla en: Firebase Console ? Tu proyecto ? ?? ? Tus apps ? Web
    =================================================== */
 

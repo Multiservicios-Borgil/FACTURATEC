@@ -1,6 +1,6 @@
 /* ===================================================
-   print.js - Generaci�n de ticket t�rmico
-   Formatos: vista previa en pantalla + impresi�n
+   print.js - Generación de ticket térmico
+   Formatos: vista previa en pantalla + impresión
    =================================================== */
 
 const PrintManager = {
@@ -8,7 +8,7 @@ const PrintManager = {
   currentInvoice: null,
 
   // ============================================================
-  // Generar el HTML del ticket t�rmico (58mm)
+  // Generar el HTML del ticket térmico (58mm)
   // ============================================================
   generateTicketHTML(invoice) {
     const c = invoice.company || {};
@@ -20,11 +20,11 @@ const PrintManager = {
       : '-';
 
     const linesHTML = invoice.lines.map(line => {
-      const typeEmoji = { labor: '??', part: '??', travel: '??', custom: '??' }[line.type] || '.';
+      const typeEmoji = { labor: '🔧', part: '⚙️', travel: '🚗', custom: '📝' }[line.type] || '.';
       return `
         <div class="ticket-line-item">
           <div class="ticket-line-desc">${typeEmoji} ${this._esc(line.description)}</div>
-          <div class="ticket-line-detail">${line.quantity} ud. � ${fmt(line.unitPrice)}</div>
+          <div class="ticket-line-detail">${line.quantity} ud. × ${fmt(line.unitPrice)}</div>
           <div class="ticket-line-subtotal">${fmt(line.subtotal)}</div>
         </div>`;
     }).join('');
@@ -47,7 +47,7 @@ const PrintManager = {
         <div class="ticket-invoice-title">FACTURA</div>
 
         <div class="ticket-info-row">
-          <span class="label">N� Factura:</span>
+          <span class="label">Nº Factura:</span>
           <span class="value">${this._esc(invoice.number)}</span>
         </div>
         <div class="ticket-info-row">
@@ -55,7 +55,7 @@ const PrintManager = {
           <span class="value">${dateFormatted}</span>
         </div>
         <div class="ticket-info-row">
-          <span class="label">T�cnico:</span>
+          <span class="label">Técnico:</span>
           <span class="value">${this._esc(invoice.techName || '-')}</span>
         </div>
 
@@ -73,7 +73,7 @@ const PrintManager = {
 
         <hr class="ticket-divider" />
 
-        <!-- L�NEAS DE FACTURA -->
+        <!-- LÍNEAS DE FACTURA -->
         <div class="ticket-section-header">DETALLE DE SERVICIOS</div>
         ${linesHTML}
 
@@ -104,7 +104,7 @@ const PrintManager = {
 
         <hr class="ticket-divider" />
 
-        <!-- NOTAS / GARANT�A -->
+        <!-- NOTAS / GARANTÍA -->
         ${invoice.notes ? `
           <div class="ticket-section-header">OBSERVACIONES</div>
           <div class="ticket-notes">${this._esc(invoice.notes)}</div>
@@ -113,7 +113,7 @@ const PrintManager = {
 
         <!-- PIE -->
         ${c.footer ? `<div class="ticket-footer">${this._esc(c.footer)}</div>` : ''}
-        <div class="ticket-thanks">�GRACIAS!</div>
+        <div class="ticket-thanks">¡GRACIAS!</div>
         <div class="ticket-footer" style="margin-top:4pt">Conserve esta factura como justificante.</div>
 
       </div>`;
@@ -142,7 +142,7 @@ const PrintManager = {
     const html = this.generateTicketHTML(inv);
     const printArea = document.getElementById('print-area');
     printArea.innerHTML = html;
-    // Aplicar estilos de impresi�n inline para mayor compatibilidad
+    // Aplicar estilos de impresión inline para mayor compatibilidad
     this._applyPrintStyles(printArea);
     window.print();
     // Limpiar tras imprimir
@@ -160,11 +160,11 @@ const PrintManager = {
     const element = document.createElement('div');
     element.innerHTML = this.generateTicketHTML(inv);
     
-    // Estilos espec�ficos para el PDF (fondo blanco, letra negra)
+    // Estilos específicos para el PDF (fondo blanco, letra negra)
     element.style.padding = '20px';
     element.style.background = '#fff';
     element.style.color = '#000';
-    element.style.width = '350px'; // Un poco m�s ancho que el ticket t�rmico para PDF
+    element.style.width = '350px'; // Un poco más ancho que el ticket térmico para PDF
 
     const opt = {
       margin:       10,
@@ -174,7 +174,7 @@ const PrintManager = {
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // Ejecutar la conversi�n
+    // Ejecutar la conversión
     html2pdf().set(opt).from(element).save();
   },
 
@@ -197,7 +197,7 @@ const PrintManager = {
     text += `*CLIENTE:* ${inv.client?.name || '-'} (${inv.client?.nif || '-'})\n\n`;
     text += `*CONCEPTOS:*\n`;
     inv.lines.forEach(l => {
-      text += `. ${l.description}: ${l.quantity} � ${fmt(l.unitPrice)} = ${fmt(l.subtotal)}\n`;
+      text += `. ${l.description}: ${l.quantity} × ${fmt(l.unitPrice)} = ${fmt(l.subtotal)}\n`;
     });
     text += `\n*BASE IMPONIBLE:* ${fmt(inv.totals?.base)}\n`;
     if (inv.totals?.ivaPct > 0) {
