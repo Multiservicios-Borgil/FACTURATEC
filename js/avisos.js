@@ -293,6 +293,7 @@ const AvisosManager = {
     var btn = document.getElementById('btn-save-aviso');
     var editId = ((document.getElementById('av-edit-id')||{}).value)||'';
     var session = DB.getSession();
+    if (!session || !session.id) { showToast('Tu sesión no tiene perfil válido. Cierra sesión y vuelve a entrar.','error'); return; }
     var isAdmin = session && session.role==='admin';
     var name  = (document.getElementById('av-client-name')||{value:''}).value.trim();
     var phone = (document.getElementById('av-client-phone')||{value:''}).value.trim();
@@ -300,6 +301,7 @@ const AvisosManager = {
     var desc  = (document.getElementById('av-description')||{value:''}).value.trim();
     if (!name||!phone||!appt||!desc) { showToast('Completa los campos obligatorios (*)','error'); return; }
     btn.disabled=true; btn.textContent='Guardando...';
+    try {
     var ot  = (document.getElementById('av-origin-type')||{value:'particular'}).value;
     var ins = (document.getElementById('av-insurer')||{value:''}).value;
     var ref = (document.getElementById('av-insurer-ref')||{value:''}).value.trim();
@@ -338,7 +340,8 @@ const AvisosManager = {
       document.getElementById('modal-aviso-form').classList.add('hidden');
       if (App.currentView==='aviso-detail'&&editId) this.showDetail(editId);
       if (App.currentView==='avisos') this.filterAndRender('avisos-list', session&&session.role==='admin');
-    } catch(e) { showToast('Error: '+e.message,'error'); }
+    } catch(e) { console.error('saveForm error:', e); showToast('Error: '+e.message,'error'); }
+    } catch(e) { console.error('saveForm (preparar datos):', e); showToast('Error preparando el aviso: '+e.message,'error'); }
     finally { btn.disabled=false; btn.textContent=editId?'Guardar cambios':'Crear Aviso'; }
   },
 

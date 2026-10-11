@@ -52,10 +52,19 @@ const DB = {
         if (user) {
           try {
             const userDoc = await this._db.collection('users').doc(user.uid).get();
-            if (userDoc.exists) {
-              this._cache.session = { id: user.uid, ...userDoc.data() };
+            const profile = userDoc.exists ? userDoc.data() : null;
+            if (profile && profile.active !== false) {
+              this._cache.session = { id: user.uid, ...profile };
+            } else {
+              // Cuenta Auth sin perfil valido: no dejar una sesion "a medias"
+              console.warn('Usuario sin perfil activo en Firestore:', user.email, user.uid);
+              this._cache.session = null;
+              this._profileError = profile ? 'inactive' : 'missing';
+              try { await this._auth.signOut(); } catch(e) {}
             }
           } catch(e) { console.error('Error cargando sesión:', e); }
+        } else {
+          this._cache.session = null;
         }
         
         // Si hay una sesión activa (ya sea por Firebase o fallback local), activar listeners
@@ -142,11 +151,32 @@ const DB = {
       return { ok: false, error: 'Usuario o contraseña incorrectos' };
     }
     const email = `${username.trim().toLowerCase()}@facturatec.app`;
+    let cred;
     try {
-      await this._auth.signInWithEmailAndPassword(email, password);
-      return { ok: true };
+      cred = await this._auth.signInWithEmailAndPassword(email, password);
     } catch (err) {
       return { ok: false, error: 'Usuario o contraseña incorrectos' };
+    }
+    // Verificar que existe un perfil activo con el MISMO uid que la cuenta Auth
+    try {
+      const uid = cred.user.uid;
+      const userDoc = await this._db.collection('users').doc(uid).get();
+      const profile = userDoc.exists ? userDoc.data() : null;
+      if (!profile) {
+        await this._auth.signOut();
+        return { ok: false, error: 'Tu usuario no tiene perfil en FacturaTec. Pide al administrador que te dé de alta de nuevo (Técnicos → Añadir) con tu misma contraseña.' };
+      }
+      if (profile.active === false) {
+        await this._auth.signOut();
+        return { ok: false, error: 'Tu usuario está desactivado. Contacta con el administrador.' };
+      }
+      this._cache.session = { id: uid, ...profile };
+      await this._setupListeners();
+      return { ok: true };
+    } catch (err) {
+      console.error('Error verificando perfil:', err);
+      try { await this._auth.signOut(); } catch(e) {}
+      return { ok: false, error: 'No se pudo cargar tu perfil: ' + (err.message || err) };
     }
   },
 
@@ -177,27 +207,45 @@ const DB = {
     try {
       secondaryApp = firebase.initializeApp(firebase.app().options, `sec-${Date.now()}`);
       const secAuth = firebase.auth(secondaryApp);
-      const cred = await secAuth.createUserWithEmailAndPassword(email, userData.password);
-      const uid  = cred.user.uid;
+      let cred, repaired = false;
+      try {
+        cred = await secAuth.createUserWithEmailAndPassword(email, userData.password);
+      } catch (e) {
+        if (e.code !== 'auth/email-already-in-use') throw e;
+        // La cuenta de acceso ya existe (p.ej. se borro solo el perfil o se recreo el usuario).
+        // Con su contraseña obtenemos su uid real y reparamos el perfil.
+        try {
+          cred = await secAuth.signInWithEmailAndPassword(email, userData.password);
+          repaired = true;
+        } catch (e2) {
+          return { ok: false, error: 'Ya existe una cuenta de acceso "' + userData.username.trim().toLowerCase() +
+            '" con otra contraseña. Escribe su contraseña actual para recuperarla, o bórrala en Firebase Console → Authentication y vuelve a crearla.' };
+        }
+      }
+      const uid = cred.user.uid;
       await secAuth.signOut();
 
-      // Guardar perfil en Firestore
+      const username = userData.username.trim().toLowerCase();
+      const existing = await this._db.collection('users').doc(uid).get();
+
+      // Guardar (o reparar) el perfil con el uid correcto
       await this._db.collection('users').doc(uid).set({
         name:      userData.name.trim(),
-        username:  userData.username.trim().toLowerCase(),
+        username,
         role:      userData.role || 'tech',
         email,
-        createdAt: new Date().toISOString(),
+        createdAt: (existing.exists && existing.data().createdAt) || new Date().toISOString(),
         active:    true,
-      });
+      }, { merge: true });
 
-      return { ok: true };
+      // Perfiles huerfanos con el mismo usuario pero otro uid: pasar sus avisos/facturas
+      // al uid correcto y eliminarlos, para que no vuelva a haber duplicados.
+      const migrated = await this._migrateStaleProfiles(username, uid, userData.name.trim());
+
+      return { ok: true, repaired: repaired || existing.exists, migrated };
     } catch (err) {
       console.error('addUser error:', err);
-      const msg = err.code === 'auth/email-already-in-use'
-        ? 'Ese nombre de usuario ya existe.'
-        : (err.message || 'Error al crear el usuario.');
-      return { ok: false, error: msg };
+      return { ok: false, error: err.message || 'Error al crear el usuario.' };
     } finally {
       if (secondaryApp) try { await secondaryApp.delete(); } catch(e){}
     }
@@ -218,9 +266,37 @@ const DB = {
   },
 
   async deleteUser(id) {
-    if (!this._initialized) { this._localDeleteUser(id); return; }
-    // Solo eliminamos el doc de Firestore (no la cuenta Auth, requiere Admin SDK)
-    try { await this._db.collection('users').doc(id).delete(); } catch(e){}
+    if (!this._initialized) { this._localDeleteUser(id); return { ok: true }; }
+    // La cuenta de acceso (Auth) no se puede borrar desde el navegador (requiere Admin SDK).
+    // Por eso NO borramos el perfil: lo desactivamos. Asi el usuario no puede entrar y,
+    // si se vuelve a dar de alta con el mismo nombre, se reactiva con el mismo uid.
+    try {
+      await this._db.collection('users').doc(id).update({ active: false, deactivatedAt: new Date().toISOString() });
+      return { ok: true };
+    } catch (err) {
+      console.error('deleteUser error:', err);
+      return { ok: false, error: err.message };
+    }
+  },
+
+  // Reasigna avisos/facturas de perfiles antiguos (mismo usuario, otro uid) y los elimina
+  async _migrateStaleProfiles(username, uid, name) {
+    let moved = 0;
+    try {
+      const snap = await this._db.collection('users').where('username', '==', username).get();
+      for (const doc of snap.docs) {
+        if (doc.id === uid) continue;
+        for (const col of ['avisos', 'invoices']) {
+          const refs = await this._db.collection(col).where('techId', '==', doc.id).get();
+          for (const r of refs.docs) {
+            try { await r.ref.update({ techId: uid, techName: name }); moved++; }
+            catch (e) { console.warn('No se pudo migrar', col, r.id, e); }
+          }
+        }
+        try { await doc.ref.delete(); } catch (e) { console.warn('No se pudo borrar perfil antiguo', doc.id, e); }
+      }
+    } catch (err) { console.warn('migrateStaleProfiles:', err); }
+    return moved;
   },
 
   // ============================================================

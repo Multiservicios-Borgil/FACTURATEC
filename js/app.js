@@ -76,7 +76,9 @@ const App = {
       if (result.ok) {
         this.startApp();
       } else {
-        document.getElementById('login-error').classList.remove('hidden');
+        const errEl = document.getElementById('login-error');
+        errEl.textContent = result.error || 'Usuario o contraseña incorrectos';
+        errEl.classList.remove('hidden');
         document.getElementById('login-pass').value = '';
         btn.disabled    = false;
         btn.textContent = 'Iniciar Sesión';
@@ -94,6 +96,9 @@ const App = {
         return;
       }
     }
+    // Evitar doble arranque (login + onAuthStateChanged) que duplicaria los manejadores
+    if (this._started) return;
+    this._started = true;
     document.getElementById('screen-login').classList.remove('active');
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').classList.remove('hidden');
@@ -326,7 +331,7 @@ const App = {
   },
 
   loadTechsList() {
-    const users = DB.getUsers();
+    const users = DB.getUsers().filter(u => u.active !== false);
     const container = document.getElementById('techs-list');
     container.innerHTML = '';
     if (users.length === 0) {
@@ -353,18 +358,20 @@ const App = {
       container.appendChild(el);
     });
 
-    container.addEventListener('click', e => {
+    // onclick (no addEventListener) para no acumular manejadores en cada recarga
+    container.onclick = async e => {
       const editBtn = e.target.closest('[data-edit-tech]');
       const delBtn = e.target.closest('[data-delete-tech]');
       if (editBtn) this.openTechModal(editBtn.dataset.editTech);
       if (delBtn) {
-        if (confirm('¿Eliminar este técnico?')) {
-          DB.deleteUser(delBtn.dataset.deleteTech);
-          this.loadTechsList();
+        if (confirm('¿Eliminar este técnico? No podrá entrar en la app. Si más adelante lo das de alta con el mismo usuario y contraseña, se recuperará.')) {
+          const res = await DB.deleteUser(delBtn.dataset.deleteTech);
+          if (res && res.ok === false) { showToast('Error al eliminar: ' + res.error, 'error'); return; }
+          setTimeout(() => this.loadTechsList(), 300);
           showToast('Técnico eliminado', 'info');
         }
       }
-    });
+    };
   },
 
   openTechModal(userId = null) {
@@ -413,8 +420,11 @@ const App = {
         showToast('Técnico actualizado correctamente', 'success');
       } else {
         const res = await DB.addUser({ name, username, password, role });
-        if (!res.ok) { showToast(res.error, 'error'); return; }
-        showToast('Técnico creado correctamente', 'success');
+        if (!res.ok) { showToast(res.error, 'error', 8000); return; }
+        showToast(res.repaired
+          ? 'Usuario recuperado y perfil reparado' + (res.migrated ? ' (' + res.migrated + ' avisos/facturas reasignados)' : '')
+          : 'Técnico creado correctamente', 'success');
+        setTimeout(() => this.loadTechsList(), 300);
       }
       this.closeTechModal();
       this.loadTechsList();
