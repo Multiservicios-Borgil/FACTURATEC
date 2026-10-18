@@ -7,6 +7,96 @@ const PrintManager = {
 
   currentInvoice: null,
 
+  // Formato de impresion elegido ('ticket' 58mm o 'a4'); se recuerda en el dispositivo
+  format: (function () { try { return localStorage.getItem('facturatec_print_format') === 'a4' ? 'a4' : 'ticket'; } catch (e) { return 'ticket'; } })(),
+
+  setFormat(fmt) {
+    this.format = fmt === 'a4' ? 'a4' : 'ticket';
+    try { localStorage.setItem('facturatec_print_format', this.format); } catch (e) {}
+    if (this.currentInvoice) this.showPreview(this.currentInvoice);
+  },
+
+  generateHTML(invoice) {
+    return this.format === 'a4' ? this.generateA4HTML(invoice) : this.generateTicketHTML(invoice);
+  },
+
+  // ============================================================
+  // Factura en formato A4
+  // ============================================================
+  generateA4HTML(invoice) {
+    const c = invoice.company || {};
+    const cli = invoice.client || {};
+    const t = invoice.totals || {};
+    const e = s => this._esc(s);
+    const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v || 0);
+    const date = invoice.date
+      ? new Date(invoice.date + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' })
+      : '-';
+    const typeLabel = { labor: 'Mano de obra', part: 'Repuesto / pieza', travel: 'Desplazamiento' };
+    const rows = (invoice.lines || []).map(l => `
+      <tr>
+        <td>${e(l.description)}${(typeLabel[l.type] && String(l.description || '').trim().toLowerCase() !== typeLabel[l.type].toLowerCase()) ? `<div class="a4-sub">${typeLabel[l.type]}</div>` : ''}</td>
+        <td class="num">${e(String(l.quantity ?? ''))}</td>
+        <td class="num">${fmt(l.unitPrice)}</td>
+        <td class="num">${fmt(l.subtotal)}</td>
+      </tr>`).join('');
+    const ivaTxt = t.ivaPct === 0 ? 'IVA (exento)' : `IVA (${t.ivaPct}%)`;
+
+    return `
+      <div class="a4-invoice">
+        <style>.a4-invoice{white-space:normal;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;color:#111;background:#fff;max-width:760px;margin:0 auto;text-align:left}.a4-invoice *{box-sizing:border-box}.a4-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:2px solid #1f3a8a;padding-bottom:12px;margin-bottom:14px}.a4-company{font-size:11px;color:#333}.a4-company-name{font-size:18px;font-weight:700;color:#1f3a8a;margin-bottom:4px;text-transform:uppercase}.a4-title-box{text-align:right;min-width:200px}.a4-title{font-size:24px;font-weight:800;letter-spacing:2px;color:#1f3a8a;margin-bottom:6px}.a4-meta{margin-left:auto;border-collapse:collapse;font-size:11px}.a4-meta td{padding:2px 0 2px 10px;text-align:right}.a4-meta td:first-child{color:#666}.a4-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#666}.a4-client{border:1px solid #d6dbe6;border-radius:6px;padding:10px 12px;margin-bottom:16px;font-size:11px;max-width:60%}.a4-client-name{font-size:13px;font-weight:700;margin:2px 0}.a4-lines{width:100%;border-collapse:collapse;margin-bottom:16px}.a4-lines th{background:#1f3a8a;color:#fff;font-size:11px;text-align:left;padding:7px 8px}.a4-lines td{border-bottom:1px solid #e3e6ee;padding:7px 8px;vertical-align:top;font-size:11.5px}.a4-lines .num,.a4-totals .num{text-align:right;white-space:nowrap}.a4-sub{font-size:10px;color:#777}.a4-bottom{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.a4-pay{font-size:11px;flex:1}.a4-notes{margin-top:10px;color:#444}.a4-totals{border-collapse:collapse;min-width:240px;font-size:12px}.a4-totals td{padding:5px 8px}.a4-total td{border-top:2px solid #1f3a8a;font-size:15px;font-weight:800;color:#1f3a8a}.a4-footer{margin-top:28px;padding-top:10px;border-top:1px solid #e3e6ee;text-align:center;font-size:10px;color:#666}.a4-void{border:2px solid #dc2626;color:#dc2626;font-weight:800;text-align:center;padding:6px;margin-bottom:12px;letter-spacing:2px}@media screen and (max-width:520px){.a4-header{flex-direction:column}.a4-title-box{text-align:left}.a4-meta{margin-left:0}.a4-meta td{text-align:left}.a4-client{max-width:100%}.a4-bottom{flex-direction:column}.a4-totals{width:100%}}</style>
+        ${invoice.status === 'anulada' ? '<div class="a4-void">FACTURA ANULADA</div>' : ''}
+        <div class="a4-header">
+          <div class="a4-company">
+            <div class="a4-company-name">${e(c.name || 'MI EMPRESA')}</div>
+            ${c.cif ? `<div>CIF/NIF: ${e(c.cif)}</div>` : ''}
+            ${c.address ? `<div>${e(c.address)}</div>` : ''}
+            ${(c.cp || c.city) ? `<div>${e(c.cp || '')} ${e(c.city || '')}</div>` : ''}
+            ${c.phone ? `<div>Tel: ${e(c.phone)}</div>` : ''}
+            ${c.email ? `<div>${e(c.email)}</div>` : ''}
+            ${c.web ? `<div>${e(c.web)}</div>` : ''}
+          </div>
+          <div class="a4-title-box">
+            <div class="a4-title">FACTURA</div>
+            <table class="a4-meta">
+              <tr><td>Nº factura</td><td><strong>${e(invoice.number)}</strong></td></tr>
+              <tr><td>Fecha</td><td>${date}</td></tr>
+              ${invoice.techName ? `<tr><td>Técnico</td><td>${e(invoice.techName)}</td></tr>` : ''}
+            </table>
+          </div>
+        </div>
+
+        <div class="a4-client">
+          <div class="a4-label">Cliente</div>
+          ${cli.name ? `<div class="a4-client-name">${e(cli.name)}</div>` : ''}
+          ${cli.nif ? `<div>NIF/CIF: ${e(cli.nif)}</div>` : ''}
+          ${cli.address ? `<div>${e(cli.address)}</div>` : ''}
+          ${(cli.cp || cli.city) ? `<div>${e(cli.cp || '')} ${e(cli.city || '')}</div>` : ''}
+          ${cli.phone ? `<div>Tel: ${e(cli.phone)}</div>` : ''}
+        </div>
+
+        <table class="a4-lines">
+          <thead><tr><th>Concepto</th><th class="num">Cant.</th><th class="num">Precio unit.</th><th class="num">Importe</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+
+        <div class="a4-bottom">
+          <div class="a4-pay">
+            <div class="a4-label">Forma de pago</div>
+            <div>${e(invoice.paymentMethod || '-')}</div>
+            ${invoice.notes ? `<div class="a4-notes"><div class="a4-label">Observaciones</div>${e(invoice.notes)}</div>` : ''}
+          </div>
+          <table class="a4-totals">
+            <tr><td>Base imponible</td><td class="num">${fmt(t.base)}</td></tr>
+            <tr><td>${ivaTxt}</td><td class="num">${fmt(t.iva)}</td></tr>
+            <tr class="a4-total"><td>TOTAL</td><td class="num">${fmt(t.total)}</td></tr>
+          </table>
+        </div>
+
+        ${c.footer ? `<div class="a4-footer">${e(c.footer)}</div>` : ''}
+      </div>`;
+  },
+
   // ============================================================
   // Generar el HTML del ticket térmico (58mm)
   // ============================================================
@@ -45,6 +135,7 @@ const PrintManager = {
         <hr class="ticket-divider" />
 
         <div class="ticket-invoice-title">FACTURA</div>
+        ${invoice.status === 'anulada' ? '<div class="ticket-invoice-title">*** ANULADA ***</div>' : ''}
 
         <div class="ticket-info-row">
           <span class="label">Nº Factura:</span>
@@ -124,12 +215,14 @@ const PrintManager = {
   // ============================================================
   showPreview(invoice) {
     this.currentInvoice = invoice;
-    const html = this.generateTicketHTML(invoice);
     const container = document.getElementById('invoice-preview-content');
-    container.innerHTML = html;
-    // Inyectar estilos inline para la vista previa en pantalla,
-    // ya que el contexto no es "print"
-    this._injectPreviewStyles(container);
+    container.innerHTML = this.generateHTML(invoice);
+    container.classList.toggle('is-a4', this.format === 'a4');
+    // Inyectar estilos inline para la vista previa del ticket en pantalla,
+    // ya que el contexto no es "print" (el A4 lleva sus propios estilos)
+    if (this.format !== 'a4') this._injectPreviewStyles(container);
+    document.querySelectorAll('[data-print-format]').forEach(b =>
+      b.classList.toggle('active', b.dataset.printFormat === this.format));
     document.getElementById('modal-preview').classList.remove('hidden');
   },
 
@@ -139,14 +232,27 @@ const PrintManager = {
   print(invoice) {
     const inv = invoice || this.currentInvoice;
     if (!inv) return;
-    const html = this.generateTicketHTML(inv);
     const printArea = document.getElementById('print-area');
-    printArea.innerHTML = html;
+    printArea.innerHTML = this.generateHTML(inv);
     // Aplicar estilos de impresión inline para mayor compatibilidad
     this._applyPrintStyles(printArea);
+    // En A4 se sustituye el tamano de pagina del ticket (58mm) definido en print.css
+    let pageStyle = null;
+    if (this.format === 'a4') {
+      pageStyle = document.createElement('style');
+      pageStyle.textContent = '@media print { @page { size: A4 portrait; margin: 12mm; } }';
+      document.head.appendChild(pageStyle);
+    }
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return; cleaned = true;
+      printArea.innerHTML = '';
+      if (pageStyle) pageStyle.remove();
+    };
+    window.addEventListener('afterprint', cleanup, { once: true });
     window.print();
-    // Limpiar tras imprimir
-    setTimeout(() => { printArea.innerHTML = ''; }, 1000);
+    // Respaldo por si el navegador no emite 'afterprint'
+    setTimeout(cleanup, 60000);
   },
 
   // ============================================================
@@ -158,13 +264,18 @@ const PrintManager = {
 
     // Crear un contenedor temporal para el PDF
     const element = document.createElement('div');
-    element.innerHTML = this.generateTicketHTML(inv);
-    
+    element.innerHTML = this.generateHTML(inv);
+
     // Estilos específicos para el PDF (fondo blanco, letra negra)
-    element.style.padding = '20px';
     element.style.background = '#fff';
     element.style.color = '#000';
-    element.style.width = '350px'; // Un poco más ancho que el ticket térmico para PDF
+    if (this.format === 'a4') {
+      element.style.padding = '0';
+      element.style.width = '720px'; // ancho util de un A4 con margenes de 10mm
+    } else {
+      element.style.padding = '20px';
+      element.style.width = '350px'; // Un poco más ancho que el ticket térmico para PDF
+    }
 
     const opt = {
       margin:       10,

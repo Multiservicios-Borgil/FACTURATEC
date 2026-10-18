@@ -230,9 +230,10 @@ const InvoiceManager = {
       const dateFormatted = inv.date ? new Date(inv.date + 'T12:00:00').toLocaleDateString('es-ES') : '-';
       const session = DB.getSession();
       const canDelete = session?.role === 'admin';
+      const voided = this.isVoid(inv);
       el.innerHTML = `
-        <div class="invoice-item-left">
-          <div class="inv-number">Nº ${inv.number}</div>
+        <div class="invoice-item-left"${voided ? ' style="opacity:.55"' : ''}>
+          <div class="inv-number">Nº ${inv.number}${voided ? ' <span class="inv-void-badge">ANULADA</span>' : ''}</div>
           <div class="inv-client">${this.escapeHtml(inv.client?.name || 'Sin nombre')}</div>
           <div class="inv-meta">
             <span title="Fecha">${dateFormatted}</span>
@@ -244,7 +245,7 @@ const InvoiceManager = {
           <div class="inv-total">${this.formatCurrency(inv.totals?.total || 0)}</div>
           <div class="inv-actions">
             <button class="inv-action-btn" data-action="view" data-id="${inv.id}" title="Ver/Imprimir">👁️</button>
-            ${canDelete ? `<button class="inv-action-btn delete" data-action="delete" data-id="${inv.id}" title="Eliminar">🗑️</button>` : ''}
+            ${canDelete && !voided ? `<button class="inv-action-btn delete" data-action="void" data-id="${inv.id}" title="Anular factura">🚫</button>` : ''}
           </div>
         </div>`;
 
@@ -255,7 +256,7 @@ const InvoiceManager = {
   renderRecentInvoices(techId) {
     const all = DB.getInvoices();
     const recent = all
-      .filter(inv => !techId || inv.techId === techId)
+      .filter(inv => (!techId || inv.techId === techId) && !this.isVoid(inv))
       .slice(0, 5);
     const container = document.getElementById('recent-invoices-list');
     if (!container) return;
@@ -283,7 +284,7 @@ const InvoiceManager = {
 
   // ---------- ESTADÍSTICAS ----------
   updateDashboardStats(techId) {
-    const all = DB.getInvoices();
+    const all = DB.getInvoices().filter(inv => !this.isVoid(inv));
     const session = DB.getSession();
     const isAdmin = session?.role === 'admin';
 
@@ -319,7 +320,7 @@ const InvoiceManager = {
     const container = document.getElementById('admin-by-tech');
     if (!container) return;
     const thisMonth = new Date().toISOString().slice(0, 7);
-    const allThisMonth = DB.getInvoices().filter(inv => inv.date?.startsWith(thisMonth));
+    const allThisMonth = DB.getInvoices().filter(inv => inv.date?.startsWith(thisMonth) && !this.isVoid(inv));
 
     // Agrupar por Técnico
     const byTech = {};
@@ -345,6 +346,8 @@ const InvoiceManager = {
   },
 
   // ---------- UTILIDADES ----------
+  isVoid(inv) { return !!inv && inv.status === 'anulada'; },
+
   formatCurrency(amount) {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount || 0);
   },

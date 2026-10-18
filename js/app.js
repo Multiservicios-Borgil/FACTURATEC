@@ -237,6 +237,7 @@ const App = {
     const session = DB.getSession();
     const isAdmin = session?.role === 'admin';
     let invoices = DB.getInvoices();
+    invoices = invoices.filter(inv => !InvoiceManager.isVoid(inv));
     if (!isAdmin) invoices = invoices.filter(inv => inv.techId === session?.id);
 
     InvoiceManager.renderInvoiceList('invoices-list', invoices, isAdmin);
@@ -258,6 +259,7 @@ const App = {
     const month = document.getElementById('filter-month').value;
 
     let invoices = DB.getInvoices();
+    invoices = invoices.filter(inv => !InvoiceManager.isVoid(inv));
     if (!isAdmin) invoices = invoices.filter(inv => inv.techId === session?.id);
 
     if (month) invoices = invoices.filter(inv => inv.date?.startsWith(month));
@@ -276,6 +278,13 @@ const App = {
   // PANEL ADMIN
   // ============================================================
   initAdminPanel() {
+    // Facturas/avisos de tecnicos borrados y recreados: reasignarlos a su usuario actual
+    DB.repairOrphanRecords().then(n => {
+      if (n) showToast(`${n} facturas/avisos reasignados a su técnico actual`, 'success', 6000);
+    }).catch(e => console.warn('repairOrphanRecords:', e));
+    const showVoid = document.getElementById('admin-show-void');
+    if (showVoid) showVoid.onchange = () => this.loadAdminInvoices();
+
     // Tabs
     document.querySelectorAll('.admin-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -306,7 +315,7 @@ const App = {
     // Búsqueda admin
     document.getElementById('admin-search').addEventListener('input', () => {
       const q = document.getElementById('admin-search').value.toLowerCase();
-      let invoices = DB.getInvoices();
+      let invoices = this._adminInvoicesBase();
       if (q) invoices = invoices.filter(inv =>
         inv.client?.name?.toLowerCase().includes(q) ||
         inv.number?.toLowerCase().includes(q) ||
@@ -325,8 +334,19 @@ const App = {
     document.getElementById('btn-save-company').addEventListener('click', () => this.saveCompanyForm());
   },
 
+  _adminInvoicesBase() {
+    const showVoid = document.getElementById('admin-show-void')?.checked;
+    return DB.getInvoices().filter(inv => showVoid || !InvoiceManager.isVoid(inv));
+  },
+
   loadAdminInvoices() {
-    const invoices = DB.getInvoices();
+    const q = (document.getElementById('admin-search')?.value || '').toLowerCase();
+    let invoices = this._adminInvoicesBase();
+    if (q) invoices = invoices.filter(inv =>
+      inv.client?.name?.toLowerCase().includes(q) ||
+      inv.number?.toLowerCase().includes(q) ||
+      inv.techName?.toLowerCase().includes(q)
+    );
     InvoiceManager.renderInvoiceList('admin-invoices-list', invoices, true);
   },
 
@@ -538,6 +558,9 @@ const App = {
     document.getElementById('btn-close-preview').addEventListener('click', () => {
       document.getElementById('modal-preview').classList.add('hidden');
     });
+    document.querySelectorAll('[data-print-format]').forEach(b => {
+      b.addEventListener('click', () => PrintManager.setFormat(b.dataset.printFormat));
+    });
     document.getElementById('btn-print-invoice').addEventListener('click', () => {
       PrintManager.print();
     });
@@ -594,21 +617,22 @@ const App = {
       if (action === 'view') {
         const inv = DB.getInvoiceById(id);
         if (inv) PrintManager.showPreview(inv);
-      } else if (action === 'delete') {
+      } else if (action === 'void') {
         const session = DB.getSession();
         if (session?.role !== 'admin') {
-          showToast('⛔ Solo el administrador puede eliminar facturas', 'error');
+          showToast('⛔ Solo el administrador puede anular facturas', 'error');
           return;
         }
-        if (confirm('¿Eliminar esta factura? Esta acción no se puede deshacer.')) {
+        const invToVoid = DB.getInvoiceById(id);
+        if (confirm(`¿Anular la factura ${invToVoid?.number || ''}?\n\nDejará de aparecer en los listados y totales. Se conserva el registro y su número no se reutiliza.`)) {
           try {
-            await DB.deleteInvoice(id);
-            showToast('Factura eliminada', 'info');
+            await DB.voidInvoice(id);
+            showToast('Factura anulada', 'info');
             if (isAdmin) this.loadAdminInvoices();
             else         this.filterInvoices();
             this.refreshDashboard();
           } catch(e) {
-            showToast('Error al eliminar. Comprueba la conexión.', 'error');
+            showToast('Error al anular: ' + (e.message || e), 'error');
           }
         }
       }

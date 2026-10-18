@@ -995,3 +995,20 @@ input[type="date"] { color-scheme: dark; }
   display: flex;
   flex-direction: column;
 }
+
+
+/* ---------- Selector de formato de impresión (Ticket / A4) ---------- */
+.print-format-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+.print-format-toggle .format-btn {
+  flex: 1; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.2); background: transparent; color: inherit;
+}
+.print-format-toggle .format-btn.active { background: #4f7cff; border-color: #4f7cff; color: #fff; }
+.invoice-preview-content.is-a4 { font-family: Arial, Helvetica, sans-serif; white-space: normal; }
+
+/* ---------- Facturas anuladas ---------- */
+.inv-void-badge {
+  display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px;
+  background: rgba(239,68,68,0.15); color: #ef4444; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
+}
+.show-void-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }

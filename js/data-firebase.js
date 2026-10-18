@@ -97,7 +97,7 @@ const DB = {
     var session2 = this._cache.session;
     var avisoQuery = this._db.collection('avisos').orderBy('createdAt', 'desc');
     var unsubAvisos = avisoQuery.onSnapshot(function(snap) {
-      DB._cache.avisos = snap.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }).sort(byCreatedDesc);
+      DB._cache.avisos = snap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); }).sort(byCreatedDesc);
       if (typeof App !== 'undefined' && App.currentView === 'avisos') {
         AvisosManager.filterAndRender('avisos-list', session2 && session2.role === 'admin');
       }
@@ -110,7 +110,7 @@ const DB = {
     });
 
     const unsubInvoices = invoiceQuery.onSnapshot(snap => {
-      this._cache.invoices = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort(byCreatedDesc);
+      this._cache.invoices = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort(byCreatedDesc);
       // Refrescar UI si está visible
       if (typeof App !== 'undefined') {
         if (App.currentView === 'dashboard') App.refreshDashboard();
@@ -315,7 +315,9 @@ const DB = {
       return invoice;
     }
     try {
-      const ref  = await this._db.collection('invoices').add(invoice);
+      // No guardar el id local dentro del documento (el id real es el de Firestore)
+      const { id: _localId, ...data } = invoice;
+      const ref  = await this._db.collection('invoices').add(data);
       invoice.id = ref.id;
       // El listener real-time actualizará la caché automáticamente
       return invoice;
@@ -333,6 +335,63 @@ const DB = {
       return;
     }
     await this._db.collection('invoices').doc(id).delete();
+  },
+
+  // Anular: la factura deja de contar en listados y totales, pero se conserva
+  // (en Espana las facturas no deben borrarse ni reutilizar su numero).
+  async voidInvoice(id) {
+    const fields = { status: 'anulada', voidedAt: new Date().toISOString(), voidedBy: this._cache.session?.name || '' };
+    if (!this._initialized) {
+      const invoices = this._getLocal('facturatec_invoices') || [];
+      const i = invoices.findIndex(x => x.id === id);
+      if (i !== -1) { invoices[i] = { ...invoices[i], ...fields }; this._setLocal('facturatec_invoices', invoices); this._cache.invoices = invoices; }
+      return;
+    }
+    await this._db.collection('invoices').doc(id).update(fields);
+  },
+
+  // Reasigna facturas/avisos que apuntan a un uid que ya no corresponde a un usuario activo
+  // (usuarios borrados y recreados). Solo admin. Devuelve cuantos registros se corrigieron.
+  async repairOrphanRecords() {
+    if (!this._initialized) return 0;
+    const s = this._cache.session;
+    if (!s || s.role !== 'admin') return 0;
+    const norm = v => String(v || '').trim().toLowerCase();
+    const usersSnap = await this._db.collection('users').get();
+    const users  = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const byId   = {}; users.forEach(u => { byId[u.id] = u; });
+    const active = users.filter(u => u.active !== false);
+    const uniq = (list, key) => { const m = {}; list.forEach(u => { const k = norm(u[key]); if (!k) return; (m[k] = m[k] || []).push(u); }); return m; };
+    const activeByName = uniq(active, 'name');
+    const activeByUser = uniq(active, 'username');
+
+    const targetFor = (techId, techName) => {
+      if (!techId) return null;
+      const owner = byId[techId];
+      if (owner && owner.active !== false) return null;           // ya es correcto
+      if (owner) {                                                  // perfil antiguo desactivado
+        const c = activeByUser[norm(owner.username)] || [];
+        if (c.length === 1 && c[0].id !== techId) return c[0];
+        return null;                                                // tecnico dado de baja de verdad
+      }
+      const c = activeByName[norm(techName)] || [];                 // uid que ya no existe
+      return c.length === 1 ? c[0] : null;
+    };
+
+    let fixed = 0;
+    for (const col of ['invoices', 'avisos']) {
+      const snap = await this._db.collection(col).get();
+      for (const d of snap.docs) {
+        const data = d.data();
+        const target = targetFor(data.techId, data.techName);
+        if (!target) continue;
+        try {
+          await d.ref.update({ techId: target.id, techName: target.name, previousTechId: data.techId });
+          fixed++;
+        } catch (e) { console.warn('No se pudo reasignar', col, d.id, e); }
+      }
+    }
+    return fixed;
   },
 
   // Número de factura — Transacción atómica en Firestore
@@ -451,7 +510,7 @@ const DB = {
     const headers  = [
       'Número','Fecha','Cliente','NIF Cliente','Dirección',
       'Conceptos','Base','IVA%','Cuota IVA','Total',
-      'Forma de Cobro','Técnico','Notas'
+      'Forma de Cobro','Técnico','Notas','Estado'
     ];
     const rows = invoices.map(inv => [
       inv.number, inv.date,
@@ -463,6 +522,7 @@ const DB = {
       (inv.totals?.iva   || 0).toFixed(2),
       (inv.totals?.total || 0).toFixed(2),
       inv.paymentMethod || '', `"${inv.techName || ''}"`, `"${inv.notes || ''}"`,
+      inv.status === 'anulada' ? 'ANULADA' : 'Emitida',
     ]);
     const csv  = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });

@@ -321,6 +321,7 @@
         <div class="list-controls">
           <input type="search" id="admin-search" placeholder="🔍 Buscar..." />
           <button class="btn btn-outline btn-sm" id="btn-export-csv">⬇️ Exportar CSV</button>
+          <label class="show-void-toggle"><input type="checkbox" id="admin-show-void" /> Ver anuladas</label>
         </div>
         <div id="admin-invoices-list" class="invoice-list"></div>
       </div>
@@ -451,6 +452,10 @@
       <div class="preview-header">
         <h3>Vista Previa de Factura</h3>
         <button class="btn-close" id="btn-close-preview">✕</button>
+      </div>
+      <div class="print-format-toggle">
+        <button type="button" class="format-btn" data-print-format="ticket">🧾 Ticket</button>
+        <button type="button" class="format-btn" data-print-format="a4">📄 A4</button>
       </div>
       <div id="invoice-preview-content" class="invoice-preview-content">
         <!-- Generado dinámicamente -->
