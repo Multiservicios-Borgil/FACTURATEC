@@ -53,6 +53,11 @@ const App = {
   },
 
   goBack() {
+    // Desde el detalle de una instalacion se vuelve a su listado
+    if (this.currentView === 'instalacion-detail' && typeof InstalacionesManager !== 'undefined') {
+      InstalacionesManager.open();
+      return;
+    }
     this.showView('dashboard');
     this.refreshDashboard();
   },
@@ -137,7 +142,7 @@ const App = {
     const session = DB.getSession();
     if (!session) return;
     InvoiceManager.updateDashboardStats(session.id);
-    InvoiceManager.renderRecentInvoices(session.role === 'admin' ? null : session.id);
+    InvoiceManager.renderRecentInvoices(null);
   },
 
   // ============================================================
@@ -238,9 +243,8 @@ const App = {
     const isAdmin = session?.role === 'admin';
     let invoices = DB.getInvoices();
     invoices = invoices.filter(inv => !InvoiceManager.isVoid(inv));
-    if (!isAdmin) invoices = invoices.filter(inv => inv.techId === session?.id);
 
-    InvoiceManager.renderInvoiceList('invoices-list', invoices, isAdmin);
+    InvoiceManager.renderInvoiceList('invoices-list', invoices, true);
     InvoiceManager.populateMonthFilter('filter-month');
 
     // Búsqueda
@@ -260,7 +264,6 @@ const App = {
 
     let invoices = DB.getInvoices();
     invoices = invoices.filter(inv => !InvoiceManager.isVoid(inv));
-    if (!isAdmin) invoices = invoices.filter(inv => inv.techId === session?.id);
 
     if (month) invoices = invoices.filter(inv => inv.date?.startsWith(month));
     if (query) {
@@ -271,7 +274,7 @@ const App = {
         inv.techName?.toLowerCase().includes(query)
       );
     }
-    InvoiceManager.renderInvoiceList('invoices-list', invoices, isAdmin);
+    InvoiceManager.renderInvoiceList('invoices-list', invoices, true);
   },
 
   // ============================================================
@@ -512,7 +515,7 @@ const App = {
 
     // Dashboard → Mis facturas
     document.getElementById('btn-view-invoices').addEventListener('click', () => {
-      this.showView('invoices', 'Mis Facturas');
+      this.showView('invoices', 'Facturas');
       this.loadInvoiceList();
     });
 
@@ -606,6 +609,16 @@ const App = {
       var sess = DB.getSession();
       AvisosManager.filterAndRender('avisos-list', sess && sess.role === 'admin');
     });
+    // ---- INSTALACIONES ----
+    const btnInst = document.getElementById('btn-instalaciones');
+    if (btnInst) btnInst.addEventListener('click', () => InstalacionesManager.open());
+    const btnNewInst = document.getElementById('btn-new-instalacion');
+    if (btnNewInst) btnNewInst.addEventListener('click', () => InstalacionesManager.openForm());
+    ['search-instalaciones', 'filter-inst-status', 'filter-inst-tech'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => InstalacionesManager.filterAndRender());
+    });
+
     this.initNewInvoiceForm();
   },
 

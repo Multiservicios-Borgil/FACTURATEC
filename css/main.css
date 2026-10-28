@@ -429,7 +429,7 @@ body {
 .field-row { display: flex; gap: 12px; }
 .field-row .field-group { flex: 1; }
 
-input[type="text"], input[type="tel"], input[type="email"], input[type="date"],
+input[type="text"], input[type="tel"], input[type="email"], input[type="date"], input[type="time"],
 input[type="number"], input[type="password"], input[type="search"],
 select, textarea {
   width: 100%;
@@ -452,7 +452,7 @@ input:focus, select:focus, textarea:focus {
 input::placeholder, textarea::placeholder { color: var(--text3); }
 textarea { resize: vertical; }
 select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M6 8L0 0h12z' fill='%238a95b0'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-input[type="date"] { color-scheme: dark; }
+input[type="date"], input[type="time"] { color-scheme: dark; }
 
 .invoice-number-badge {
   display: flex;
@@ -1012,3 +1012,11 @@ input[type="date"] { color-scheme: dark; }
   background: rgba(239,68,68,0.15); color: #ef4444; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
 }
 .show-void-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
+
+
+/* ---------- Instalaciones ---------- */
+.inst-comments {
+  white-space: pre-wrap; word-break: break-word; line-height: 1.5;
+  font-size: 0.95rem; color: var(--text, #e0e0e0);
+}
+#inst-comments { min-height: 160px; resize: vertical; }

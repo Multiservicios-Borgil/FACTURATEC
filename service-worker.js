@@ -2,7 +2,7 @@
    service-worker.js - Cacheé offline para PWA
    =================================================== */
 
-const CACHE_NAME = 'facturatec-v7';
+const CACHE_NAME = 'facturatec-v9';
 const ASSETS = [
   './index.html',
   './css/main.css',
@@ -12,6 +12,7 @@ const ASSETS = [
   './js/invoices.js',
   './js/print.js',
   './js/avisos.js',
+  './js/instalaciones.js',
   './js/app.js',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap',

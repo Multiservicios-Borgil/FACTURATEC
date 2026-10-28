@@ -288,7 +288,7 @@ const InvoiceManager = {
     const session = DB.getSession();
     const isAdmin = session?.role === 'admin';
 
-    const filtered = isAdmin ? all : all.filter(inv => inv.techId === techId);
+    const filtered = all; // todos ven todas las facturas
     const today = new Date().toISOString().slice(0, 10);
     const thisMonth = new Date().toISOString().slice(0, 7);
 

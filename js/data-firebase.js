@@ -12,6 +12,7 @@ const DB = {
     users:    [],
     invoices: [],
     avisos:   [],
+    instalaciones: [],
     company:  null,
     session:  null,
     counter:  {},
@@ -83,15 +84,13 @@ const DB = {
     this._removeListeners();
     const session = this._cache.session;
 
-    // Facturas: admin ve todas, técnico solo las suyas
+    // Facturas: todos los usuarios (admin y tecnicos) ven todas las facturas
     // Nota: where('techId') + orderBy('createdAt') exigiria un indice compuesto en
     // Firestore; sin el, la consulta falla en silencio y el tecnico no ve nada.
     // Para tecnicos filtramos solo por techId y ordenamos en el cliente.
     const isAdminSession = session?.role === 'admin';
     const byCreatedDesc = (a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
-    let invoiceQuery = isAdminSession
-      ? this._db.collection('invoices').orderBy('createdAt', 'desc')
-      : this._db.collection('invoices').where('techId', '==', session.id);
+    let invoiceQuery = this._db.collection('invoices').orderBy('createdAt', 'desc');
 
     // Listener de avisos: todos los usuarios (admin y tecnicos) ven todos los avisos
     var session2 = this._cache.session;
@@ -107,6 +106,20 @@ const DB = {
     }, function(err) {
       console.error('Listener avisos:', err);
       if (typeof showToast === 'function') showToast('No se pudieron cargar los avisos: ' + err.message, 'error');
+    });
+
+    // Listener de instalaciones: todos los usuarios ven todas
+    const unsubInst = this._db.collection('instalaciones').onSnapshot(snap => {
+      this._cache.instalaciones = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      if (typeof App !== 'undefined' && typeof InstalacionesManager !== 'undefined') {
+        if (App.currentView === 'instalaciones') InstalacionesManager.filterAndRender();
+        if (App.currentView === 'instalacion-detail' && InstalacionesManager.currentId) {
+          InstalacionesManager.showDetail(InstalacionesManager.currentId, true);
+        }
+      }
+    }, err => {
+      console.error('Listener instalaciones:', err);
+      if (typeof showToast === 'function') showToast('No se pudieron cargar las instalaciones: ' + err.message, 'error');
     });
 
     const unsubInvoices = invoiceQuery.onSnapshot(snap => {
@@ -130,7 +143,7 @@ const DB = {
       if (snap.exists) this._cache.company = snap.data();
     });
 
-    this._listeners = [unsubAvisos, unsubInvoices, unsubUsers, unsubCompany];
+    this._listeners = [unsubAvisos, unsubInst, unsubInvoices, unsubUsers, unsubCompany];
   },
 
   _removeListeners() {
@@ -488,6 +501,42 @@ const DB = {
   // ============================================================
   // FIREBASE STORAGE (Fotos y partes)
   // ============================================================
+  // ============================================================
+  // INSTALACIONES
+  // ============================================================
+  getInstalaciones()      { return this._cache.instalaciones || []; },
+  getInstalacionById(id)  { return (this._cache.instalaciones || []).find(i => i.id === id) || null; },
+
+  async addInstalacion(data) {
+    if (!this._initialized) {
+      const list = this._getLocal('facturatec_instalaciones') || [];
+      const item = { ...data, id: Date.now().toString() };
+      list.unshift(item); this._setLocal('facturatec_instalaciones', list); this._cache.instalaciones = list;
+      return item.id;
+    }
+    const ref = await this._db.collection('instalaciones').add(data);
+    return ref.id;
+  },
+
+  async updateInstalacion(id, fields) {
+    if (!this._initialized) {
+      const list = this._getLocal('facturatec_instalaciones') || [];
+      const i = list.findIndex(x => x.id === id);
+      if (i !== -1) { list[i] = { ...list[i], ...fields }; this._setLocal('facturatec_instalaciones', list); this._cache.instalaciones = list; }
+      return;
+    }
+    await this._db.collection('instalaciones').doc(id).update(fields);
+  },
+
+  async deleteInstalacion(id) {
+    if (!this._initialized) {
+      const list = (this._getLocal('facturatec_instalaciones') || []).filter(x => x.id !== id);
+      this._setLocal('facturatec_instalaciones', list); this._cache.instalaciones = list;
+      return;
+    }
+    await this._db.collection('instalaciones').doc(id).delete();
+  },
+
   async uploadFile(storagePath, file) {
     if (!this._initialized || !this._storage) {
       throw new Error('Firebase Storage no disponible. Configura Firebase primero.');
