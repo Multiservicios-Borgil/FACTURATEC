@@ -25,8 +25,9 @@ const InstalacionesManager = {
   _isAdmin() { var s = this._session(); return !!(s && s.role === 'admin'); },
 
   _formatApt(inst, long) {
-    if (!inst.date) return 'Sin fecha';
-    var d = new Date(inst.date + 'T12:00:00').toLocaleDateString('es-ES', long
+    var dt = /^\d{4}-\d{2}-\d{2}$/.test(inst.date || '') ? new Date(inst.date + 'T12:00:00') : null;
+    if (!dt || isNaN(dt.getTime())) return inst.time ? 'Sin fecha · ' + inst.time : 'Sin fecha';
+    var d = dt.toLocaleDateString('es-ES', long
       ? { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }
       : { day: '2-digit', month: '2-digit', year: 'numeric' });
     return d + (inst.time ? ' · ' + inst.time : '');
@@ -235,6 +236,8 @@ const InstalacionesManager = {
     var val = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var address = val('inst-address'), phone = val('inst-phone');
     if (!address || !phone) { showToast('La dirección y el teléfono son obligatorios', 'error'); return; }
+    var dateVal = val('inst-date');
+    if (dateVal && !/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) { showToast('La fecha no es válida (revisa el año)', 'error'); return; }
     var fileInput = document.getElementById('inst-pdf');
     var file = fileInput && fileInput.files && fileInput.files[0];
     if (!this._validPdf(file)) return;
