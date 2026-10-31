@@ -113,6 +113,11 @@
           <span class="action-label">Instalaciones</span>
           <span class="action-desc">Programar y asignar instalaciones</span>
         </button>
+        <button class="action-card" id="btn-encargos">
+          <span class="action-icon">📦</span>
+          <span class="action-label">Encargos</span>
+          <span class="action-desc">Material pedido por clientes</span>
+        </button>
         <button class="action-card" id="btn-settings" style="display:none">
           <span class="action-icon">⚙️</span>
           <span class="action-label">Configuración</span>
@@ -472,6 +477,35 @@
       <div id="instalacion-detail-content" style="padding:16px;padding-bottom:80px;"></div>
     </div>
 
+    <!-- ========== PANTALLA: ENCARGOS ========== -->
+    <div id="view-encargos" class="view hidden">
+      <div class="list-controls">
+        <input type="search" id="search-encargos" placeholder="🔍 Buscar cliente, producto, teléfono, nº..." />
+        <select id="filter-enc-status">
+          <option value="">Todos los estados</option>
+          <option value="pending">⏳ Pendientes de llegada</option>
+          <option value="arrived">📦 Llegados, sin recoger</option>
+          <option value="picked">✅ Recogidos</option>
+          <option value="overdue">⚠️ Retrasados</option>
+        </select>
+        <select id="filter-enc-store">
+          <option value="">Todas las tiendas</option>
+          <option value="ILLUECA">ILLUECA</option>
+          <option value="CALATAYUD">CALATAYUD</option>
+        </select>
+      </div>
+      <div id="encargos-summary" class="enc-summary"></div>
+      <div style="padding:16px 16px 0;">
+        <button class="btn btn-primary btn-block" id="btn-new-encargo">➕ Nuevo Encargo</button>
+      </div>
+      <div id="encargos-list" class="invoice-list" style="padding:16px;"></div>
+    </div>
+
+    <!-- ========== PANTALLA: DETALLE ENCARGO ========== -->
+    <div id="view-encargo-detail" class="view hidden">
+      <div id="encargo-detail-content" style="padding:16px;padding-bottom:80px;"></div>
+    </div>
+
   </div><!-- fin screen-app -->
 
   <!-- ========== MODAL: VISTA PREVIA FACTURA ========== -->
@@ -505,6 +539,8 @@
   <div id="modal-aviso-form" class="modal hidden"></div>
   <!-- ========== MODAL: FORMULARIO INSTALACION ========== -->
   <div id="modal-instalacion-form" class="modal hidden"></div>
+  <!-- ========== MODAL: FORMULARIO ENCARGO ========== -->
+  <div id="modal-encargo-form" class="modal hidden"></div>
 
   <!-- ========== TOAST NOTIFICATIONS ========== -->
   <div id="toast-container" class="toast-container"></div>
@@ -516,6 +552,7 @@
   <script src="js/print.js"></script>
   <script src="js/avisos.js"></script>
   <script src="js/instalaciones.js"></script>
+  <script src="js/encargos.js"></script>
   <script src="js/app.js"></script>
 
   <!-- Registro del Service Worker (PWA offline) -->

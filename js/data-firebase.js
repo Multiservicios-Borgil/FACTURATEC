@@ -13,6 +13,7 @@ const DB = {
     invoices: [],
     avisos:   [],
     instalaciones: [],
+    encargos: [],
     company:  null,
     session:  null,
     counter:  {},
@@ -122,6 +123,20 @@ const DB = {
       if (typeof showToast === 'function') showToast('No se pudieron cargar las instalaciones: ' + err.message, 'error');
     });
 
+    // Listener de encargos de material: todos los usuarios ven todos
+    const unsubEnc = this._db.collection('encargos').onSnapshot(snap => {
+      this._cache.encargos = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      if (typeof App !== 'undefined' && typeof EncargosManager !== 'undefined') {
+        if (App.currentView === 'encargos') EncargosManager.filterAndRender();
+        if (App.currentView === 'encargo-detail' && EncargosManager.currentId) {
+          EncargosManager.showDetail(EncargosManager.currentId, true);
+        }
+      }
+    }, err => {
+      console.error('Listener encargos:', err);
+      if (typeof showToast === 'function') showToast('No se pudieron cargar los encargos: ' + err.message, 'error');
+    });
+
     const unsubInvoices = invoiceQuery.onSnapshot(snap => {
       this._cache.invoices = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort(byCreatedDesc);
       // Refrescar UI si está visible
@@ -143,7 +158,7 @@ const DB = {
       if (snap.exists) this._cache.company = snap.data();
     });
 
-    this._listeners = [unsubAvisos, unsubInst, unsubInvoices, unsubUsers, unsubCompany];
+    this._listeners = [unsubAvisos, unsubInst, unsubEnc, unsubInvoices, unsubUsers, unsubCompany];
   },
 
   _removeListeners() {
@@ -501,6 +516,42 @@ const DB = {
   // ============================================================
   // FIREBASE STORAGE (Fotos y partes)
   // ============================================================
+  // ============================================================
+  // ENCARGOS DE MATERIAL
+  // ============================================================
+  getEncargos()      { return this._cache.encargos || []; },
+  getEncargoById(id) { return (this._cache.encargos || []).find(i => i.id === id) || null; },
+
+  async addEncargo(data) {
+    if (!this._initialized) {
+      const list = this._getLocal('facturatec_encargos') || [];
+      const item = { ...data, id: Date.now().toString() };
+      list.unshift(item); this._setLocal('facturatec_encargos', list); this._cache.encargos = list;
+      return item.id;
+    }
+    const ref = await this._db.collection('encargos').add(data);
+    return ref.id;
+  },
+
+  async updateEncargo(id, fields) {
+    if (!this._initialized) {
+      const list = this._getLocal('facturatec_encargos') || [];
+      const i = list.findIndex(x => x.id === id);
+      if (i !== -1) { list[i] = { ...list[i], ...fields }; this._setLocal('facturatec_encargos', list); this._cache.encargos = list; }
+      return;
+    }
+    await this._db.collection('encargos').doc(id).update(fields);
+  },
+
+  async deleteEncargo(id) {
+    if (!this._initialized) {
+      const list = (this._getLocal('facturatec_encargos') || []).filter(x => x.id !== id);
+      this._setLocal('facturatec_encargos', list); this._cache.encargos = list;
+      return;
+    }
+    await this._db.collection('encargos').doc(id).delete();
+  },
+
   // ============================================================
   // INSTALACIONES
   // ============================================================

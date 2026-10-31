@@ -58,6 +58,11 @@ const App = {
       InstalacionesManager.open();
       return;
     }
+    // Desde el detalle de un encargo se vuelve a su listado
+    if (this.currentView === 'encargo-detail' && typeof EncargosManager !== 'undefined') {
+      EncargosManager.open();
+      return;
+    }
     this.showView('dashboard');
     this.refreshDashboard();
   },
@@ -609,6 +614,16 @@ const App = {
       var sess = DB.getSession();
       AvisosManager.filterAndRender('avisos-list', sess && sess.role === 'admin');
     });
+    // ---- ENCARGOS ----
+    const btnEnc = document.getElementById('btn-encargos');
+    if (btnEnc) btnEnc.addEventListener('click', () => EncargosManager.open());
+    const btnNewEnc = document.getElementById('btn-new-encargo');
+    if (btnNewEnc) btnNewEnc.addEventListener('click', () => EncargosManager.openForm());
+    ['search-encargos', 'filter-enc-status', 'filter-enc-store'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => EncargosManager.filterAndRender());
+    });
+
     // ---- INSTALACIONES ----
     const btnInst = document.getElementById('btn-instalaciones');
     if (btnInst) btnInst.addEventListener('click', () => InstalacionesManager.open());
