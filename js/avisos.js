@@ -23,6 +23,42 @@ const AvisosManager = {
   getAll()    { return DB.getAvisos(); },
   getById(id) { return DB.getAvisoById(id); },
 
+  // ---- Localidad: utilidades compartidas con Instalaciones ----
+  _cityKey(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase(); },
+  _cityName(s) { var t = String(s || '').trim().replace(/\s+/g, ' '); return t ? t.charAt(0).toUpperCase() + t.slice(1) : ''; },
+  _uniqueCities(names) {
+    var m = {}, self = this;
+    names.forEach(function (n) { var k = self._cityKey(n); if (k && !m[k]) m[k] = self._cityName(n); });
+    return Object.keys(m).map(function (k) { return { key: k, name: m[k] }; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name, 'es'); });
+  },
+  _allCities() {
+    var names = (DB.getAvisos() || []).map(function (a) { return a.client && a.client.city; })
+      .concat((DB.getInstalaciones ? DB.getInstalaciones() : []).map(function (i) { return i.city; }));
+    return this._uniqueCities(names);
+  },
+  _cityDatalist() {
+    var self = this;
+    return this._allCities().map(function (c) { return '<option value="' + self._esc(c.name) + '"></option>'; }).join('');
+  },
+  _fillCitySelect(selectId, cities) {
+    var el = document.getElementById(selectId); if (!el) return;
+    var sig = cities.map(function (c) { return c.key; }).join('|');
+    if (el.dataset.sig === sig) return;
+    var prev = el.value, self = this;
+    el.innerHTML = '<option value="">📍 Todas las localidades</option>' +
+      cities.map(function (c) { return '<option value="' + self._esc(c.key) + '">' + self._esc(c.name) + '</option>'; }).join('');
+    el.dataset.sig = sig;
+    el.value = cities.some(function (c) { return c.key === prev; }) ? prev : '';
+  },
+  _compareCity(a, b) {
+    var ka = this._cityKey(a), kb = this._cityKey(b);
+    if (!ka && !kb) return 0;
+    if (!ka) return 1;
+    if (!kb) return -1;
+    return ka.localeCompare(kb, 'es');
+  },
+
   _esc(str) {
     if (!str) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -67,6 +103,7 @@ const AvisosManager = {
           '<span>📅 ' + date + time + '</span>' +
           '<span>👷 ' + self._esc(av.techName||'Sin asignar') + '</span>' +
           (pCount>0 ? '<span>📷 '+pCount+' foto'+(pCount>1?'s':'')+'</span>' : '') +
+          ((av.client && av.client.city) ? '<span>📍 ' + self._esc(av.client.city) + '</span>' : '') +
           (av.workOrder ? '<span>📝 Parte</span>' : '') +
         '</div>';
       el.addEventListener('click', function() { self.showDetail(av.id); });
@@ -79,16 +116,24 @@ const AvisosManager = {
     var st = ((document.getElementById('filter-aviso-status')||{}).value)||'';
     var tf = ((document.getElementById('filter-aviso-tech')||{}).value)||'';
     var session = DB.getSession();
+    var self = this;
     var avisos = this.getAll();
+    this._fillCitySelect('filter-aviso-city', this._uniqueCities(avisos.map(function(a){ return a.client && a.client.city; })));
+    var cf = ((document.getElementById('filter-aviso-city')||{}).value)||'';
+    var sortBy = ((document.getElementById('sort-aviso')||{}).value)||'';
     if (st) avisos = avisos.filter(function(a){ return a.status===st; });
     if (tf) avisos = avisos.filter(function(a){ return a.techId===tf; });
+    if (cf) avisos = avisos.filter(function(a){ return self._cityKey(a.client && a.client.city) === cf; });
     if (q)  avisos = avisos.filter(function(a){
-      return ((a.client&&a.client.name&&a.client.name.toLowerCase().includes(q))||
+      return ((a.client&&a.client.city&&a.client.city.toLowerCase().includes(q))||
+              (a.client&&a.client.name&&a.client.name.toLowerCase().includes(q))||
               (a.client&&a.client.phone&&a.client.phone.includes(q))||
               (a.appliance&&a.appliance.brand&&a.appliance.brand.toLowerCase().includes(q))||
               (a.appliance&&a.appliance.type&&a.appliance.type.toLowerCase().includes(q))||
               (a.origin&&a.origin.insurerRef&&a.origin.insurerRef.toLowerCase().includes(q)));
     });
+    // Orden por localidad (estable: dentro de cada localidad se mantiene el orden por fecha)
+    if (sortBy === 'city') avisos = avisos.slice().sort(function(a,b){ return self._compareCity(a.client && a.client.city, b.client && b.client.city); });
     this.renderList(containerId, avisos, isAdmin);
   },
 
@@ -233,7 +278,7 @@ const AvisosManager = {
         '<div class="field-group"><label>Telefono 2</label><input type="tel" id="av-client-phone2" placeholder="976 000 000" value="'+self._esc((av&&av.client&&av.client.phone2)||'')+'" /></div>' +
       '</div>' +
       '<div class="field-group"><label>Direccion</label><input type="text" id="av-client-address" placeholder="Calle Mayor, 5" value="'+self._esc((av&&av.client&&av.client.address)||'')+'" /></div>' +
-      '<div class="field-group"><label>Poblacion</label><input type="text" id="av-client-city" placeholder="Calatayud" value="'+self._esc((av&&av.client&&av.client.city)||'')+'" /></div>' +
+      '<div class="field-group"><label>Localidad <span class="required">*</span></label><input type="text" id="av-client-city" list="city-options-av" placeholder="Calatayud" value="'+self._esc((av&&av.client&&av.client.city)||'')+'" /><datalist id="city-options-av">'+self._cityDatalist()+'</datalist></div>' +
       '<div style="font-weight:600;color:#4f7cff;margin:16px 0 12px;">🔌 Electrodomestico</div>' +
       '<div class="field-row">' +
         '<div class="field-group"><label>Tipo <span class="required">*</span></label><select id="av-appliance-type">'+appOpts+'</select></div>' +
@@ -299,7 +344,8 @@ const AvisosManager = {
     var phone = (document.getElementById('av-client-phone')||{value:''}).value.trim();
     var appt  = (document.getElementById('av-appliance-type')||{value:''}).value;
     var desc  = (document.getElementById('av-description')||{value:''}).value.trim();
-    if (!name||!phone||!appt||!desc) { showToast('Completa los campos obligatorios (*)','error'); return; }
+    var cityVal = AvisosManager._cityName((document.getElementById('av-client-city')||{value:''}).value);
+    if (!name||!phone||!appt||!desc||!cityVal) { showToast('Completa los campos obligatorios (*)','error'); return; }
     btn.disabled=true; btn.textContent='Guardando...';
     try {
     var ot  = (document.getElementById('av-origin-type')||{value:'particular'}).value;
@@ -316,7 +362,7 @@ const AvisosManager = {
       client:{ name:name, phone:phone,
         phone2:(document.getElementById('av-client-phone2')||{value:''}).value.trim(),
         address:(document.getElementById('av-client-address')||{value:''}).value.trim(),
-        city:(document.getElementById('av-client-city')||{value:''}).value.trim() },
+        city:cityVal },
       appliance:{ type:appt,
         brand:(document.getElementById('av-appliance-brand')||{value:''}).value.trim(),
         model:(document.getElementById('av-appliance-model')||{value:''}).value.trim(),

@@ -609,6 +609,13 @@ const App = {
       var sess = DB.getSession();
       AvisosManager.filterAndRender('avisos-list', sess && sess.role === 'admin');
     });
+    ['filter-aviso-tech', 'filter-aviso-city', 'sort-aviso'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('change', function() {
+        var sess = DB.getSession();
+        AvisosManager.filterAndRender('avisos-list', sess && sess.role === 'admin');
+      });
+    });
     var filterAvStatus = document.getElementById('filter-aviso-status');
     if (filterAvStatus) filterAvStatus.addEventListener('change', function() {
       var sess = DB.getSession();
@@ -629,7 +636,7 @@ const App = {
     if (btnInst) btnInst.addEventListener('click', () => InstalacionesManager.open());
     const btnNewInst = document.getElementById('btn-new-instalacion');
     if (btnNewInst) btnNewInst.addEventListener('click', () => InstalacionesManager.openForm());
-    ['search-instalaciones', 'filter-inst-status', 'filter-inst-tech'].forEach(id => {
+    ['search-instalaciones', 'filter-inst-status', 'filter-inst-tech', 'filter-inst-city', 'sort-inst'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => InstalacionesManager.filterAndRender());
     });

@@ -56,10 +56,14 @@ const InstalacionesManager = {
     var st = ((document.getElementById('filter-inst-status') || {}).value) || '';
     var tf = ((document.getElementById('filter-inst-tech') || {}).value) || '';
     var list = this.getAll().slice();
+    AvisosManager._fillCitySelect('filter-inst-city', AvisosManager._uniqueCities(list.map(function (i) { return i.city; })));
+    var cf = ((document.getElementById('filter-inst-city') || {}).value) || '';
+    var sortBy = ((document.getElementById('sort-inst') || {}).value) || '';
     if (st) list = list.filter(function (i) { return (i.status || 'pending') === st; });
     if (tf) list = list.filter(function (i) { return i.techId === tf; });
+    if (cf) list = list.filter(function (i) { return AvisosManager._cityKey(i.city) === cf; });
     if (q)  list = list.filter(function (i) {
-      return [i.address, i.phone, i.comments, i.techName, i.salesInvoice && i.salesInvoice.name]
+      return [i.address, i.city, i.applianceType, i.phone, i.comments, i.techName, i.salesInvoice && i.salesInvoice.name]
         .some(function (v) { return v && String(v).toLowerCase().includes(q); });
     });
     // Pendientes primero, ordenadas por fecha programada (sin fecha al final)
@@ -70,6 +74,8 @@ const InstalacionesManager = {
       if (sa === 1) return db.localeCompare(da); // realizadas: mas recientes primero
       return da.localeCompare(db);
     });
+    // Orden por localidad (estable: dentro de cada localidad se mantiene el orden por fecha)
+    if (sortBy === 'city') list.sort(function (a, b) { return AvisosManager._compareCity(a.city, b.city); });
     this.renderList(list);
   },
 
@@ -93,6 +99,7 @@ const InstalacionesManager = {
         '</div>' +
         '<div class="aviso-item-body">' +
           '<div class="aviso-client-name">📍 ' + self._esc(inst.address || 'Sin dirección') + '</div>' +
+          ((inst.applianceType || inst.city) ? '<div class="aviso-appliance">' + (inst.applianceType ? '🔌 ' + self._esc(inst.applianceType) : '') + ((inst.applianceType && inst.city) ? ' · ' : '') + (inst.city ? '📍 ' + self._esc(inst.city) : '') + '</div>' : '') +
           '<div class="aviso-appliance">📞 ' + self._esc(inst.phone || 'Sin teléfono') + '</div>' +
           (inst.comments ? '<div class="aviso-desc">' + self._esc(inst.comments.substring(0, 90)) + (inst.comments.length > 90 ? '...' : '') + '</div>' : '') +
         '</div>' +
@@ -143,6 +150,8 @@ const InstalacionesManager = {
       '<div class="detail-section"><div class="detail-section-title">📍 Datos de la instalación</div>' +
         '<div class="detail-row"><span class="detail-label">Dirección</span><span><a href="' + mapsUrl + '" target="_blank" rel="noopener" style="color:#4f7cff;">' + self._esc(inst.address || 'Sin dirección') + '</a></span></div>' +
         '<div class="detail-row"><span class="detail-label">Teléfono</span><span><a href="tel:' + self._esc((inst.phone || '').replace(/\s/g, '')) + '" style="color:#4f7cff;">' + self._esc(inst.phone || 'Sin teléfono') + '</a></span></div>' +
+        '<div class="detail-row"><span class="detail-label">Localidad</span><span>' + self._esc(inst.city || 'Sin localidad') + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Electrodoméstico</span><span>' + self._esc(inst.applianceType || 'Sin especificar') + '</span></div>' +
         '<div class="detail-row"><span class="detail-label">Programada</span><span>' + self._formatApt(inst, true) + '</span></div>' +
       '</div>' +
 
@@ -177,6 +186,10 @@ const InstalacionesManager = {
       return '<option value="' + u.id + '" ' + (sel === u.id ? 'selected' : '') + '>' + self._esc(u.name) + '</option>';
     }).join('');
     var v = function (k) { return self._esc((inst && inst[k]) || ''); };
+    var typeOpts = '<option value="">Seleccionar tipo</option>' + AvisosManager.APPLIANCE_TYPES.map(function (a) {
+      return '<option ' + (inst && inst.applianceType === a ? 'selected' : '') + '>' + a + '</option>';
+    }).join('');
+    var cityOpts = AvisosManager._cityDatalist();
 
     var h =
       '<div class="modal-overlay" onclick="InstalacionesManager.closeForm()"></div>' +
@@ -189,6 +202,10 @@ const InstalacionesManager = {
           '<input type="text" id="inst-address" placeholder="Calle, número, piso, población" value="' + v('address') + '" /></div>' +
         '<div class="field-group"><label>Teléfono <span class="required">*</span></label>' +
           '<input type="tel" id="inst-phone" placeholder="600 000 000" value="' + v('phone') + '" /></div>' +
+        '<div class="field-row">' +
+          '<div class="field-group"><label>Localidad <span class="required">*</span></label><input type="text" id="inst-city" list="city-options-inst" placeholder="Calatayud" value="' + v('city') + '" /><datalist id="city-options-inst">' + cityOpts + '</datalist></div>' +
+          '<div class="field-group"><label>Electrodoméstico <span class="required">*</span></label><select id="inst-type">' + typeOpts + '</select></div>' +
+        '</div>' +
         '<div class="field-row">' +
           '<div class="field-group"><label>Fecha (opcional)</label><input type="date" id="inst-date" value="' + v('date') + '" /></div>' +
           '<div class="field-group"><label>Hora (opcional)</label><input type="time" id="inst-time" value="' + v('time') + '" /></div>' +
@@ -236,6 +253,8 @@ const InstalacionesManager = {
     var val = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var address = val('inst-address'), phone = val('inst-phone');
     if (!address || !phone) { showToast('La dirección y el teléfono son obligatorios', 'error'); return; }
+    var city = AvisosManager._cityName(val('inst-city')), applianceType = val('inst-type');
+    if (!city || !applianceType) { showToast('La localidad y el tipo de electrodoméstico son obligatorios', 'error'); return; }
     var dateVal = val('inst-date');
     if (dateVal && !/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) { showToast('La fecha no es válida (revisa el año)', 'error'); return; }
     var fileInput = document.getElementById('inst-pdf');
@@ -247,6 +266,8 @@ const InstalacionesManager = {
     var data = {
       address: address,
       phone: phone,
+      city: city,
+      applianceType: applianceType,
       date: val('inst-date'),
       time: val('inst-time'),
       comments: (document.getElementById('inst-comments') || { value: '' }).value,

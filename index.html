@@ -427,7 +427,7 @@
     </div>
     <!-- ========== PANTALLA: AVISOS ========== -->
     <div id="view-avisos" class="view hidden">
-      <div class="list-controls">
+      <div class="list-controls multi">
         <input type="search" id="search-avisos" placeholder="🔍 Buscar cliente, marca, siniestro..." />
         <select id="filter-aviso-status">
           <option value="">Todos los estados</option>
@@ -440,6 +440,13 @@
         </select>
         <select id="filter-aviso-tech" class="hidden">
           <option value="">Todos los tecnicos</option>
+        </select>
+        <select id="filter-aviso-city">
+          <option value="">📍 Todas las localidades</option>
+        </select>
+        <select id="sort-aviso">
+          <option value="">↕️ Orden: más recientes</option>
+          <option value="city">↕️ Orden: por localidad</option>
         </select>
       </div>
       <div style="padding:16px 16px 0;">
@@ -455,7 +462,7 @@
 
     <!-- ========== PANTALLA: INSTALACIONES ========== -->
     <div id="view-instalaciones" class="view hidden">
-      <div class="list-controls">
+      <div class="list-controls multi">
         <input type="search" id="search-instalaciones" placeholder="🔍 Buscar dirección, teléfono, comentarios..." />
         <select id="filter-inst-status">
           <option value="">Todos los estados</option>
@@ -464,6 +471,13 @@
         </select>
         <select id="filter-inst-tech">
           <option value="">Todos los técnicos</option>
+        </select>
+        <select id="filter-inst-city">
+          <option value="">📍 Todas las localidades</option>
+        </select>
+        <select id="sort-inst">
+          <option value="">↕️ Orden: por fecha</option>
+          <option value="city">↕️ Orden: por localidad</option>
         </select>
       </div>
       <div style="padding:16px 16px 0;">
