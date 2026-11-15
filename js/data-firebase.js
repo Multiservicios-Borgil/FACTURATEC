@@ -14,6 +14,7 @@ const DB = {
     avisos:   [],
     instalaciones: [],
     encargos: [],
+    reparaciones: [],
     company:  null,
     session:  null,
     counter:  {},
@@ -137,6 +138,20 @@ const DB = {
       if (typeof showToast === 'function') showToast('No se pudieron cargar los encargos: ' + err.message, 'error');
     });
 
+    // Listener de reparaciones en tienda: todos los usuarios ven todas
+    const unsubRep = this._db.collection('reparaciones').onSnapshot(snap => {
+      this._cache.reparaciones = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      if (typeof App !== 'undefined' && typeof ReparacionesManager !== 'undefined') {
+        if (App.currentView === 'reparaciones') ReparacionesManager.filterAndRender();
+        if (App.currentView === 'reparacion-detail' && ReparacionesManager.currentId) {
+          ReparacionesManager.showDetail(ReparacionesManager.currentId, true);
+        }
+      }
+    }, err => {
+      console.error('Listener reparaciones:', err);
+      if (typeof showToast === 'function') showToast('No se pudieron cargar las reparaciones: ' + err.message, 'error');
+    });
+
     const unsubInvoices = invoiceQuery.onSnapshot(snap => {
       this._cache.invoices = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort(byCreatedDesc);
       // Refrescar UI si está visible
@@ -158,7 +173,7 @@ const DB = {
       if (snap.exists) this._cache.company = snap.data();
     });
 
-    this._listeners = [unsubAvisos, unsubInst, unsubEnc, unsubInvoices, unsubUsers, unsubCompany];
+    this._listeners = [unsubAvisos, unsubInst, unsubEnc, unsubRep, unsubInvoices, unsubUsers, unsubCompany];
   },
 
   _removeListeners() {
@@ -516,6 +531,42 @@ const DB = {
   // ============================================================
   // FIREBASE STORAGE (Fotos y partes)
   // ============================================================
+  // ============================================================
+  // REPARACIONES EN TIENDA
+  // ============================================================
+  getReparaciones()      { return this._cache.reparaciones || []; },
+  getReparacionById(id)  { return (this._cache.reparaciones || []).find(i => i.id === id) || null; },
+
+  async addReparacion(data) {
+    if (!this._initialized) {
+      const list = this._getLocal('facturatec_reparaciones') || [];
+      const item = { ...data, id: Date.now().toString() };
+      list.unshift(item); this._setLocal('facturatec_reparaciones', list); this._cache.reparaciones = list;
+      return item.id;
+    }
+    const ref = await this._db.collection('reparaciones').add(data);
+    return ref.id;
+  },
+
+  async updateReparacion(id, fields) {
+    if (!this._initialized) {
+      const list = this._getLocal('facturatec_reparaciones') || [];
+      const i = list.findIndex(x => x.id === id);
+      if (i !== -1) { list[i] = { ...list[i], ...fields }; this._setLocal('facturatec_reparaciones', list); this._cache.reparaciones = list; }
+      return;
+    }
+    await this._db.collection('reparaciones').doc(id).update(fields);
+  },
+
+  async deleteReparacion(id) {
+    if (!this._initialized) {
+      const list = (this._getLocal('facturatec_reparaciones') || []).filter(x => x.id !== id);
+      this._setLocal('facturatec_reparaciones', list); this._cache.reparaciones = list;
+      return;
+    }
+    await this._db.collection('reparaciones').doc(id).delete();
+  },
+
   // ============================================================
   // ENCARGOS DE MATERIAL
   // ============================================================

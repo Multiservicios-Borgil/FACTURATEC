@@ -118,6 +118,11 @@
           <span class="action-label">Encargos</span>
           <span class="action-desc">Material pedido por clientes</span>
         </button>
+        <button class="action-card" id="btn-reparaciones">
+          <span class="action-icon">🛠️</span>
+          <span class="action-label">Reparaciones en tienda</span>
+          <span class="action-desc">Aparatos entregados en tienda</span>
+        </button>
         <button class="action-card" id="btn-settings" style="display:none">
           <span class="action-icon">⚙️</span>
           <span class="action-label">Configuración</span>
@@ -520,6 +525,37 @@
       <div id="encargo-detail-content" style="padding:16px;padding-bottom:80px;"></div>
     </div>
 
+    <!-- ========== PANTALLA: REPARACIONES EN TIENDA ========== -->
+    <div id="view-reparaciones" class="view hidden">
+      <div class="list-controls multi">
+        <input type="search" id="search-reparaciones" placeholder="🔍 Buscar cliente, teléfono, aparato, problema..." />
+        <select id="filter-rep-status">
+          <option value="">Todos los estados</option>
+          <option value="pending">🛠️ En reparación</option>
+          <option value="repaired">🔧 Reparados, por entregar</option>
+          <option value="delivered">✅ Entregados</option>
+        </select>
+        <select id="filter-rep-store">
+          <option value="">Todas las tiendas</option>
+          <option value="ILLUECA">Se repara en Illueca</option>
+          <option value="CALATAYUD">Se repara en Calatayud</option>
+        </select>
+        <select id="filter-rep-tech">
+          <option value="">Todos los técnicos</option>
+        </select>
+      </div>
+      <div id="reparaciones-summary" class="enc-summary"></div>
+      <div style="padding:16px 16px 0;">
+        <button class="btn btn-primary btn-block" id="btn-new-reparacion">➕ Nueva Reparación</button>
+      </div>
+      <div id="reparaciones-list" class="invoice-list" style="padding:16px;"></div>
+    </div>
+
+    <!-- ========== PANTALLA: DETALLE REPARACION ========== -->
+    <div id="view-reparacion-detail" class="view hidden">
+      <div id="reparacion-detail-content" style="padding:16px;padding-bottom:80px;"></div>
+    </div>
+
   </div><!-- fin screen-app -->
 
   <!-- ========== MODAL: VISTA PREVIA FACTURA ========== -->
@@ -555,6 +591,8 @@
   <div id="modal-instalacion-form" class="modal hidden"></div>
   <!-- ========== MODAL: FORMULARIO ENCARGO ========== -->
   <div id="modal-encargo-form" class="modal hidden"></div>
+  <!-- ========== MODAL: FORMULARIO REPARACION EN TIENDA ========== -->
+  <div id="modal-reparacion-form" class="modal hidden"></div>
 
   <!-- ========== TOAST NOTIFICATIONS ========== -->
   <div id="toast-container" class="toast-container"></div>
@@ -567,6 +605,7 @@
   <script src="js/avisos.js"></script>
   <script src="js/instalaciones.js"></script>
   <script src="js/encargos.js"></script>
+  <script src="js/reparaciones.js"></script>
   <script src="js/app.js"></script>
 
   <!-- Registro del Service Worker (PWA offline) -->

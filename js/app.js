@@ -58,6 +58,11 @@ const App = {
       InstalacionesManager.open();
       return;
     }
+    // Desde el detalle de una reparacion en tienda se vuelve a su listado
+    if (this.currentView === 'reparacion-detail' && typeof ReparacionesManager !== 'undefined') {
+      ReparacionesManager.open();
+      return;
+    }
     // Desde el detalle de un encargo se vuelve a su listado
     if (this.currentView === 'encargo-detail' && typeof EncargosManager !== 'undefined') {
       EncargosManager.open();
@@ -621,6 +626,16 @@ const App = {
       var sess = DB.getSession();
       AvisosManager.filterAndRender('avisos-list', sess && sess.role === 'admin');
     });
+    // ---- REPARACIONES EN TIENDA ----
+    const btnRep = document.getElementById('btn-reparaciones');
+    if (btnRep) btnRep.addEventListener('click', () => ReparacionesManager.open());
+    const btnNewRep = document.getElementById('btn-new-reparacion');
+    if (btnNewRep) btnNewRep.addEventListener('click', () => ReparacionesManager.openForm());
+    ['search-reparaciones', 'filter-rep-status', 'filter-rep-store', 'filter-rep-tech'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => ReparacionesManager.filterAndRender());
+    });
+
     // ---- ENCARGOS ----
     const btnEnc = document.getElementById('btn-encargos');
     if (btnEnc) btnEnc.addEventListener('click', () => EncargosManager.open());
