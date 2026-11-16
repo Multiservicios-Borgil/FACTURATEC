@@ -73,7 +73,7 @@ const ReparacionesManager = {
     if (sf) list = list.filter(function (r) { return r.repairStore === sf; });
     if (tf) list = list.filter(function (r) { return r.techId === tf; });
     if (q)  list = list.filter(function (r) {
-      return [r.clientName, r.phone, r.applianceType, r.problem, r.comments, r.techName]
+      return [r.clientName, r.phone, r.applianceType, r.problem, r.comments, r.techName, self._code(r)]
         .some(function (v) { return v && String(v).toLowerCase().includes(q); });
     });
     // En reparacion (la mas antigua primero), luego reparadas sin entregar, y al final las entregadas
@@ -114,6 +114,7 @@ const ReparacionesManager = {
       el.innerHTML =
         '<div class="aviso-item-top">' +
           '<span class="aviso-status-badge" style="background:' + s.bg + ';color:' + s.color + ';">' + s.icon + ' ' + s.label + '</span>' +
+          '<span class="aviso-insurer-badge">' + self._code(r) + '</span>' +
           (self._transfer(r) ? '<span class="aviso-insurer-badge">🚚 Traslado</span>' : '') +
         '</div>' +
         '<div class="aviso-item-body">' +
@@ -157,7 +158,7 @@ const ReparacionesManager = {
     cont.innerHTML =
       '<div class="aviso-detail-header" style="background:' + s.bg + ';border-left:4px solid ' + s.color + ';padding:16px;border-radius:12px;margin-bottom:16px;">' +
         '<div style="font-size:1.1rem;font-weight:700;color:' + s.color + '">' + s.icon + ' ' + s.label + '</div>' +
-        '<div style="font-size:0.85rem;color:#aaa;margin-top:4px">Registrada ' + AvisosManager._formatDate(r.createdAt) + (r.createdByName ? ' por ' + self._esc(r.createdByName) : '') + '</div>' +
+        '<div style="font-size:0.85rem;color:#aaa;margin-top:4px">Ref. <strong>' + self._code(r) + '</strong> · Registrada ' + AvisosManager._formatDate(r.createdAt) + (r.createdByName ? ' por ' + self._esc(r.createdByName) : '') + '</div>' +
       '</div>' +
 
       '<div class="detail-section"><div class="detail-section-title">🔌 Aparato</div>' +
@@ -191,6 +192,7 @@ const ReparacionesManager = {
 
       '<div class="detail-actions">' +
         actions +
+        '<button class="btn btn-outline" onclick="ReparacionesManager.printLabel(\'' + id + '\')">🏷️ Imprimir etiqueta</button>' +
         '<button class="btn btn-outline" onclick="ReparacionesManager.openForm(\'' + id + '\')">✏️ Editar reparación</button>' +
         (this._isAdmin() ? '<button class="btn btn-outline" style="color:#ef4444" onclick="ReparacionesManager.remove(\'' + id + '\')">🗑️ Eliminar reparación</button>' : '') +
       '</div>';
@@ -212,9 +214,7 @@ const ReparacionesManager = {
         return '<option value="' + s + '" ' + (sel === s ? 'selected' : '') + '>' + self._storeLabel(s) + '</option>';
       }).join('');
     };
-    var typeOpts = '<option value="">Seleccionar tipo</option>' + AvisosManager.APPLIANCE_TYPES.map(function (a) {
-      return '<option ' + (r && r.applianceType === a ? 'selected' : '') + '>' + a + '</option>';
-    }).join('');
+    var typeList = this._typeSuggestions().map(function (t) { return '<option value="' + self._esc(t) + '"></option>'; }).join('');
     var techOpts = '<option value="">Sin asignar</option>' + this._users(r && r.techId).map(function (u) {
       return '<option value="' + u.id + '" ' + (r && r.techId === u.id ? 'selected' : '') + '>' + self._esc(u.name) + '</option>';
     }).join('');
@@ -241,7 +241,7 @@ const ReparacionesManager = {
         '<div class="field-group"><label>Teléfono <span class="required">*</span></label><input type="tel" id="rep-phone" value="' + v('phone') + '" /></div>' +
 
         '<div style="font-weight:600;color:#4f7cff;margin:16px 0 12px;">🔌 Aparato</div>' +
-        '<div class="field-group"><label>Tipo de aparato <span class="required">*</span></label><select id="rep-type">' + typeOpts + '</select></div>' +
+        '<div class="field-group"><label>Tipo de aparato <span class="required">*</span></label><input type="text" id="rep-type" list="rep-type-options" placeholder="Escribe el tipo: robot de cocina, TV, aspiradora..." value="' + v('applianceType') + '" /><datalist id="rep-type-options">' + typeList + '</datalist></div>' +
         '<div class="field-group"><label>Problema <span class="required">*</span></label><textarea id="rep-problem" rows="3" placeholder="Qué le pasa al aparato...">' + v('problem') + '</textarea></div>' +
         '<div class="field-row">' +
           '<div class="field-group"><label>Fecha de entrada</label><input type="date" id="rep-entry" value="' + self._esc(entry) + '" /></div>' +
@@ -273,7 +273,7 @@ const ReparacionesManager = {
     var val = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var dropStore = val('rep-drop'), repairStore = val('rep-repair');
     var clientName = val('rep-client'), phone = val('rep-phone');
-    var applianceType = val('rep-type'), problem = val('rep-problem');
+    var applianceType = AvisosManager._cityName(val('rep-type')), problem = val('rep-problem');
     if (!dropStore || !repairStore) { showToast('Indica la tienda de entrega y la tienda donde se repara', 'error'); return; }
     if (!clientName || !phone || !applianceType || !problem) { showToast('Completa los campos obligatorios (*)', 'error'); return; }
 
@@ -302,17 +302,21 @@ const ReparacionesManager = {
     var btn = document.getElementById('btn-save-rep');
     btn.disabled = true; btn.textContent = 'Guardando...';
     try {
+      var newId = null;
       if (editId) {
         await DB.updateReparacion(editId, data);
       } else {
         data.status = 'pending'; data.createdAt = now; data.createdBy = sess.id; data.createdByName = sess.name || '';
-        await DB.addReparacion(data);
+        newId = await DB.addReparacion(data);
       }
       try { localStorage.setItem('facturatec_last_store', repairStore); } catch (x) {}
       showToast(editId ? 'Reparación actualizada' : 'Reparación creada', 'success');
       this.closeForm();
       if (App.currentView === 'reparacion-detail' && editId) this.showDetail(editId, true);
       if (App.currentView === 'reparaciones') this.filterAndRender();
+      if (newId && confirm('Reparación creada.\n\n¿Imprimir ahora la etiqueta para pegarla en el aparato?')) {
+        this.printLabel(Object.assign({}, data, { id: newId }));
+      }
     } catch (e) {
       console.error('saveForm reparacion:', e);
       showToast('Error al guardar: ' + e.message, 'error');
@@ -324,6 +328,89 @@ const ReparacionesManager = {
   // ============================================================
   // ACCIONES
   // ============================================================
+  // ============================================================
+  // ETIQUETA PARA LA IMPRESORA DE TICKETS (58 mm)
+  // ============================================================
+  // Referencia corta y estable, derivada del identificador de la reparacion
+  _code(r) {
+    var id = String((r && r.id) || '');
+    return id ? 'R-' + id.slice(-5).toUpperCase() : 'R-?????';
+  },
+
+  // Tipos de aparato ya escritos antes (sin duplicados), para sugerirlos al escribir
+  _typeSuggestions() {
+    var seen = {}, out = [];
+    this.getAll().forEach(function (r) {
+      var t = String(r.applianceType || '').trim();
+      var k = AvisosManager._cityKey(t);
+      if (k && !seen[k]) { seen[k] = 1; out.push(t); }
+    });
+    return out.sort(function (a, b) { return a.localeCompare(b, 'es'); });
+  },
+
+  _labelHTML(r) {
+    var e = function (s) { return AvisosManager._esc(s); };
+    var company = (DB.getCompany && DB.getCompany()) || {};
+    var problem = String(r.problem || '');
+    if (problem.length > 220) problem = problem.slice(0, 217) + '...';
+    var transfer = this._transfer(r);
+    var css =
+      ".rep-label{font-family:'Courier New',Courier,monospace;color:#000;width:100%;max-width:54mm;margin:0 auto;font-size:9pt;line-height:1.3;text-align:left}" +
+      ".rep-label *{box-sizing:border-box}" +
+      ".rep-label .rl-company{text-align:center;font-size:7.5pt}" +
+      ".rep-label .rl-title{text-align:center;font-size:10pt;font-weight:bold;letter-spacing:1px;margin-top:2pt}" +
+      ".rep-label .rl-code{text-align:center;font-size:17pt;font-weight:bold;letter-spacing:2px;border:1.5px solid #000;padding:2pt 0;margin:3pt 0}" +
+      ".rep-label .rl-hr{border:none;border-top:1px dashed #000;margin:4pt 0}" +
+      ".rep-label .rl-lbl{font-size:7pt;text-transform:uppercase}" +
+      ".rep-label .rl-big{font-size:12pt;font-weight:bold;word-break:break-word}" +
+      ".rep-label .rl-txt{white-space:pre-wrap;word-break:break-word}" +
+      ".rep-label .rl-row{display:flex;justify-content:space-between;gap:4pt;font-size:8.5pt}" +
+      ".rep-label .rl-cut{text-align:center;font-size:7pt;margin-top:6pt}";
+    return '<style>' + css + '</style>' +
+      '<div class="rep-label">' +
+        (company.name ? '<div class="rl-company">' + e(company.name) + '</div>' : '') +
+        '<div class="rl-title">REPARACIÓN</div>' +
+        '<div class="rl-code">' + e(this._code(r)) + '</div>' +
+
+        '<div class="rl-lbl">Aparato</div>' +
+        '<div class="rl-big">' + e(r.applianceType || '-') + '</div>' +
+        '<hr class="rl-hr">' +
+
+        '<div class="rl-lbl">Cliente</div>' +
+        '<div class="rl-big">' + e(r.clientName || '-') + '</div>' +
+        '<div class="rl-txt">Tel: ' + e(r.phone || '-') + '</div>' +
+        '<hr class="rl-hr">' +
+
+        '<div class="rl-lbl">Problema</div>' +
+        '<div class="rl-txt">' + e(problem || '-') + '</div>' +
+        '<hr class="rl-hr">' +
+
+        '<div class="rl-row"><span>Entrada:</span><strong>' + this._date(r.entryDate, false) + '</strong></div>' +
+        (transfer
+          ? '<div class="rl-row"><span>Entregado en:</span><strong>' + e(this._storeLabel(r.dropStore)) + '</strong></div>' +
+            '<div class="rl-row"><span>Se repara en:</span><strong>' + e(this._storeLabel(r.repairStore)) + '</strong></div>'
+          : '<div class="rl-row"><span>Tienda:</span><strong>' + e(this._storeLabel(r.repairStore || r.dropStore)) + '</strong></div>') +
+        (r.techName ? '<div class="rl-row"><span>Técnico:</span><strong>' + e(r.techName) + '</strong></div>' : '') +
+        ((r.budget !== null && r.budget !== undefined && r.budget !== '') ? '<div class="rl-row"><span>Presupuesto:</span><strong>' + this._money(r.budget) + '</strong></div>' : '') +
+        '<div class="rl-cut">- - - - - - - - - - - - - -</div>' +
+      '</div>';
+  },
+
+  // Acepta el id de una reparacion o el objeto completo (recien creada)
+  printLabel(arg) {
+    var r = (typeof arg === 'string') ? this.getById(arg) : arg;
+    if (!r) { showToast('No se encontró la reparación', 'error'); return; }
+    var area = document.getElementById('print-area');
+    if (!area) return;
+    area.innerHTML = this._labelHTML(r);
+    area.style.cssText = "font-family:'Courier New',Courier,monospace;color:#000;background:#fff;width:100%;";
+    var cleaned = false;
+    var cleanup = function () { if (cleaned) return; cleaned = true; area.innerHTML = ''; };
+    window.addEventListener('afterprint', cleanup, { once: true });
+    window.print();
+    setTimeout(cleanup, 60000);   // respaldo si el navegador no emite 'afterprint'
+  },
+
   async reassign(id, techId) {
     var u = (DB.getUsers() || []).find(function (x) { return x.id === techId; });
     if (!u) return;
